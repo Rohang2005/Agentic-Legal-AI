@@ -1,0 +1,36 @@
+# Legal Agent System - Dependencies
+# Python 3.10+
+
+# Web framework
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+
+# PDF processing
+pypdf>=4.0.0
+
+# HuggingFace & ML
+transformers>=4.36.0
+torch>=2.1.0
+sentence-transformers>=2.2.2
+accelerate>=0.25.0
+bitsandbytes>=0.41.0
+
+# Vector store
+faiss-cpu>=1.7.4
+
+# LangChain for orchestration
+langchain>=0.1.0
+langchain-core>=0.1.0
+langchain-community>=0.0.20
+langchain-huggingface>=0.0.1
+
+# Demo UI
+streamlit>=1.29.0
+
+# Utilities
+pydantic>=2.5.0
+python-multipart>=0.0.6
+httpx>=0.26.0
+
+# Optional: for smaller memory footprint (8-bit loading)
+# pip install bitsandbytes
