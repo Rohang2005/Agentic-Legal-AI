@@ -1,0 +1,29 @@
+[
+  {
+    "metadata": {
+      "case_name": "State vs Example",
+      "court": "High Court",
+      "judge": "Justice A",
+      "petitioner": "State",
+      "respondent": "Example",
+      "main_issue": "Whether cheating under IPC 420 was proved beyond reasonable doubt.",
+      "petitioner_arguments": [
+        "Trial court erred in appreciation of evidence."
+      ],
+      "respondent_arguments": [
+        "Prosecution failed to establish dishonest intention."
+      ],
+      "sections_of_law": [
+        "Section 420 IPC"
+      ],
+      "precedents": [
+        "Illustrative precedent citation"
+      ],
+      "court_reasoning": [
+        "Essential ingredients of Section 420 IPC were not proved."
+      ],
+      "final_decision": "Accused acquitted.",
+      "outcome_normalized": "acquittal"
+    }
+  }
+]

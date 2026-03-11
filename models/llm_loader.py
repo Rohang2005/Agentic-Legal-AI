@@ -5,9 +5,12 @@ Provides a unified interface to load different models (e.g. Mistral, Qwen, Llama
 with optional 8-bit quantization for lower memory usage.
 """
 
-from typing import Optional
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline, Pipeline
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Optional
+
+if TYPE_CHECKING:
+    from transformers import Pipeline
 
 from config.hf_config import HF_TOKEN
 
@@ -27,17 +30,6 @@ class LLMLoader:
         do_sample: bool = True,
         temperature: float = 0.3,
     ):
-        """
-        Initialize the LLM loader.
-
-        Args:
-            model_id: HuggingFace model identifier (e.g. mistralai/Mistral-7B-Instruct-v0.2, Qwen/Qwen2-7B-Instruct, meta-llama/Llama-3.1-8B-Instruct).
-            device_map: Device mapping ('auto', 'cuda', 'cpu').
-            load_in_8bit: Whether to load model in 8-bit for memory savings.
-            max_new_tokens: Maximum tokens to generate.
-            do_sample: Whether to use sampling.
-            temperature: Sampling temperature.
-        """
         self.model_id = model_id
         self.device_map = device_map
         self.load_in_8bit = load_in_8bit
@@ -49,16 +41,14 @@ class LLMLoader:
         self._pipe: Optional[Pipeline] = None
 
     def load(self) -> Pipeline:
-        """
-        Load the model and tokenizer, return a text-generation pipeline.
-
-        Returns:
-            HuggingFace pipeline for text generation.
-        """
+        """Load the model and tokenizer, return a text-generation pipeline."""
         if self._pipe is not None:
             return self._pipe
 
-        model_kwargs = {"device_map": self.device_map, "trust_remote_code": True}
+        import torch
+        from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+
+        model_kwargs: dict[str, Any] = {"device_map": self.device_map, "trust_remote_code": True}
         if self.load_in_8bit:
             model_kwargs["load_in_8bit"] = True
 
@@ -84,13 +74,9 @@ class LLMLoader:
         )
         return self._pipe
 
-    def generate(self, prompt: str, **kwargs) -> str:
+    def generate(self, prompt: str, **kwargs: Any) -> str:
         """
         Generate text from a prompt.
-
-        Args:
-            prompt: Input prompt string.
-            **kwargs: Override pipeline kwargs (e.g. max_new_tokens).
 
         Returns:
             Generated text (only the new tokens, not the prompt).
@@ -99,7 +85,7 @@ class LLMLoader:
         out = pipe(prompt, **kwargs)
         if out and len(out) > 0 and "generated_text" in out[0]:
             full = out[0]["generated_text"]
-            return full[len(prompt) :].strip() if full.startswith(prompt) else full.strip()
+            return full[len(prompt):].strip() if full.startswith(prompt) else full.strip()
         return ""
 
     def unload(self) -> None:
@@ -107,5 +93,9 @@ class LLMLoader:
         self._pipe = None
         self._model = None
         self._tokenizer = None
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
+        try:
+            import torch
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+        except ImportError:
+            pass

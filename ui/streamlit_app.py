@@ -14,6 +14,7 @@ sys.path.insert(0, str(ROOT))
 
 import streamlit as st
 from pipeline.langchain_orchestrator import LangChainOrchestrator
+from utils.legal_normalizer import parse_nl_search_query
 
 st.set_page_config(page_title="Agentic AI Legal Case Analyzer", page_icon="⚖️", layout="wide")
 
@@ -60,6 +61,11 @@ if st.session_state.get("analyzed") and "analysis" in st.session_state:
 
     st.subheader("Case Metadata")
     st.json(analysis.get("metadata", {}))
+    warnings = analysis.get("warnings", [])
+    if warnings:
+        st.warning("Extraction warnings: " + " | ".join(warnings))
+    with st.expander("Provenance", expanded=False):
+        st.json(analysis.get("provenance", []))
 
     st.subheader("Timeline")
     timeline = analysis.get("timeline", [])
@@ -88,5 +94,50 @@ if st.session_state.get("analyzed") and "analysis" in st.session_state:
             answer = orch.ask(question)
         st.markdown("**Answer:**")
         st.write(answer)
+
+    st.subheader("Search Across Analyzed Cases")
+    nl_query = st.text_input(
+        "Natural language filter query",
+        key="search_nl_query",
+        placeholder="e.g. Show cases citing Section 420 IPC with acquittal outcomes.",
+    )
+    parsed = parse_nl_search_query(nl_query) if nl_query else {"act": "", "section": "", "outcome": ""}
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        act = st.text_input("Act", value=parsed.get("act", ""), key="search_act")
+    with col2:
+        section = st.text_input("Section", value=parsed.get("section", ""), key="search_section")
+    with col3:
+        outcome = st.text_input("Outcome", value=parsed.get("outcome", ""), key="search_outcome")
+    with col4:
+        court = st.text_input("Court", value="", key="search_court")
+
+    if st.button("Search Cases"):
+        orch = get_orchestrator()
+        matches = orch.case_store.search_cases(
+            act=act,
+            section=section,
+            outcome=outcome,
+            court=court,
+            limit=100,
+        )
+        st.write(f"Found {len(matches)} case(s).")
+        if matches:
+            rows = []
+            for item in matches:
+                rows.append(
+                    {
+                        "document_id": item.get("document_id", ""),
+                        "case_name": item.get("case_name", ""),
+                        "court": item.get("court", ""),
+                        "outcome": item.get("outcome_normalized", ""),
+                        "sections": ", ".join(
+                            f"{x.get('act', '')} {x.get('section', '')}".strip()
+                            for x in item.get("sections_normalized", [])
+                        ),
+                        "main_issue": item.get("main_issue", ""),
+                    }
+                )
+            st.table(rows)
 else:
     st.info("Upload a PDF and click **Analyze Case** to get started.")

@@ -4,8 +4,12 @@ Embedding model for legal document chunks.
 Uses BAAI/bge-large-en-v1.5 for dense embeddings compatible with FAISS retrieval.
 """
 
-from typing import List
-from sentence_transformers import SentenceTransformer
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, List, Optional
+
+if TYPE_CHECKING:
+    from sentence_transformers import SentenceTransformer
 
 from config.hf_config import HF_TOKEN
 
@@ -17,21 +21,16 @@ class EmbeddingModel:
 
     DEFAULT_MODEL_ID = "BAAI/bge-large-en-v1.5"
 
-    def __init__(self, model_id: str = DEFAULT_MODEL_ID, device: str = None):
-        """
-        Initialize the embedding model.
-
-        Args:
-            model_id: HuggingFace model id for sentence-transformers.
-            device: Device to run on ('cuda', 'cpu', or None for auto).
-        """
+    def __init__(self, model_id: str = DEFAULT_MODEL_ID, device: Optional[str] = None):
         self.model_id = model_id
-        self._model: SentenceTransformer = None
+        self._model: Optional[SentenceTransformer] = None
         self._device = device
 
     def load(self) -> SentenceTransformer:
         """Load the SentenceTransformer model. Returns cached model if already loaded."""
         if self._model is None:
+            from sentence_transformers import SentenceTransformer
+
             try:
                 self._model = SentenceTransformer(
                     self.model_id,
@@ -39,7 +38,6 @@ class EmbeddingModel:
                     token=HF_TOKEN,
                 )
             except TypeError:
-                # Older sentence-transformers may use use_auth_token
                 self._model = SentenceTransformer(
                     self.model_id,
                     device=self._device,
@@ -50,11 +48,6 @@ class EmbeddingModel:
     def encode(self, texts: List[str], batch_size: int = 32, show_progress: bool = False):
         """
         Encode a list of texts into embedding vectors.
-
-        Args:
-            texts: List of strings to embed.
-            batch_size: Batch size for encoding.
-            show_progress: Whether to show progress bar.
 
         Returns:
             Numpy array of shape (n_texts, embedding_dim).

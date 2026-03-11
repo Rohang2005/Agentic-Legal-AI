@@ -6,6 +6,7 @@ Flow: PDF/Text -> Parser -> Chunk -> Structure -> Timeline -> Contradiction -> E
 
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+import logging
 
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -17,8 +18,11 @@ from agents.contradiction_agent import ContradictionAgent
 from agents.research_agent import ResearchAgent
 from models.embedding_model import EmbeddingModel
 from retrieval.vector_store import LegalVectorStore
+from retrieval.case_store import CaseStore
 from utils.text_chunker import TextChunker
 from utils.pdf_loader import load_pdf_text
+from utils.legal_normalizer import normalize_case_record
+from utils.extraction_guardrails import build_provenance, validate_extraction
 
 
 class LegalPipelineOrchestrator:
@@ -34,6 +38,7 @@ class LegalPipelineOrchestrator:
         use_llm_parser: bool = False,
         vector_store: Optional[LegalVectorStore] = None,
         index_path: Optional[Path] = None,
+        case_store: Optional[CaseStore] = None,
     ):
         """
         Args:
@@ -54,13 +59,17 @@ class LegalPipelineOrchestrator:
             index_path=index_path,
         )
         self.research_agent = ResearchAgent(vector_store=self.vector_store)
+        self.case_store = case_store or CaseStore()
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         self._last_metadata: Optional[Dict[str, Any]] = None
         self._last_timeline: Optional[List[Dict[str, Any]]] = None
         self._last_contradictions: Optional[List[Dict[str, Any]]] = None
         self._last_cleaned_text: Optional[str] = None
+        self._last_provenance: List[Dict[str, str]] = []
+        self._last_warnings: List[str] = []
 
-    def run_from_pdf(self, pdf_path: str | Path) -> Dict[str, Any]:
+    def run_from_pdf(self, pdf_path: str | Path, document_id: Optional[str] = None) -> Dict[str, Any]:
         """
         Run the full pipeline from a PDF file.
 
@@ -71,9 +80,10 @@ class LegalPipelineOrchestrator:
             Dict with keys: cleaned_text, metadata, timeline, contradictions, chunks_indexed.
         """
         raw_text = load_pdf_text(pdf_path)
-        return self.run_from_text(raw_text)
+        doc_id = document_id or Path(pdf_path).stem
+        return self.run_from_text(raw_text, document_id=doc_id)
 
-    def run_from_text(self, raw_text: str) -> Dict[str, Any]:
+    def run_from_text(self, raw_text: str, document_id: str = "latest") -> Dict[str, Any]:
         """
         Run the full pipeline from raw document text.
 
@@ -106,6 +116,17 @@ class LegalPipelineOrchestrator:
             self.vector_store.add_texts(chunks)
         except Exception as e:
             raise RuntimeError(f"Embedding/indexing failed: {e}") from e
+        normalized_record = normalize_case_record(document_id, metadata)
+        self.case_store.upsert_case(normalized_record)
+
+        self._last_provenance = [
+            build_provenance("Qwen/Qwen2-7B-Instruct", "structure"),
+            build_provenance("Qwen/Qwen2-7B-Instruct", "timeline"),
+            build_provenance("microsoft/deberta-v3-large-mnli", "contradiction"),
+        ]
+        self._last_warnings = validate_extraction(metadata)
+        for warning in self._last_warnings:
+            self.logger.warning("Extraction warning: %s", warning)
 
         self._last_metadata = metadata
         self._last_timeline = timeline
@@ -117,6 +138,8 @@ class LegalPipelineOrchestrator:
             "timeline": timeline,
             "contradictions": contradictions,
             "chunks_indexed": len(chunks),
+            "provenance": self._last_provenance,
+            "warnings": self._last_warnings,
         }
 
     def ask(self, question: str) -> str:
@@ -134,6 +157,12 @@ class LegalPipelineOrchestrator:
 
     def get_last_cleaned_text(self) -> Optional[str]:
         return self._last_cleaned_text
+
+    def get_last_provenance(self) -> List[Dict[str, str]]:
+        return self._last_provenance
+
+    def get_last_warnings(self) -> List[str]:
+        return self._last_warnings
 
     def save_index(self, path: Optional[Path] = None) -> None:
         """Persist FAISS index and metadata."""

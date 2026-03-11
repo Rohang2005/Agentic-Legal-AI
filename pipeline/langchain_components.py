@@ -10,9 +10,9 @@ from typing import Any, Dict, List, Optional
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnableLambda
-from langchain_core.documents import Document
+from langchain_core.prompts import PromptTemplate  # type: ignore[import]
+from langchain_core.runnables import RunnableLambda  # type: ignore[import]
+from langchain_core.documents import Document  # type: ignore[import]
 
 from models.llm_loader import LLMLoader
 from retrieval.vector_store import LegalVectorStore
@@ -38,7 +38,9 @@ def get_structure_chain(llm_loader: Optional[LLMLoader] = None):
         "Extract legal case metadata from the following judgment text. "
         "Respond with a single JSON object only, no other text. Use this exact structure:\n"
         '{{"case_name": "", "court": "", "judge": "", "petitioner": "", "respondent": "", '
-        '"sections_of_law": [], "precedents": [], "final_decision": ""}}\n\n'
+        '"main_issue": "", "petitioner_arguments": [], "respondent_arguments": [], '
+        '"sections_of_law": [], "precedents": [], "court_reasoning": [], '
+        '"final_decision": "", "outcome_normalized": ""}}\n\n'
         "Document:\n{document}"
     )
 
@@ -48,6 +50,57 @@ def get_structure_chain(llm_loader: Optional[LLMLoader] = None):
     runnable = RunnableLambda(_generate)
     chain = prompt | runnable
     return chain
+
+
+def _simple_json_chain(prompt_text: str, llm_loader: Optional[LLMLoader] = None, max_tokens: int = 384):
+    if llm_loader is None:
+        llm_loader = LLMLoader("Qwen/Qwen2-7B-Instruct", max_new_tokens=max_tokens, temperature=0.2)
+    prompt = PromptTemplate.from_template(prompt_text)
+
+    def _generate(x: Any) -> str:
+        return llm_loader.generate(_prompt_to_str(x), max_new_tokens=max_tokens)
+
+    return prompt | RunnableLambda(_generate)
+
+
+def get_issue_chain(llm_loader: Optional[LLMLoader] = None):
+    return _simple_json_chain(
+        "Identify the core legal issue in this judgment.\n"
+        'Return JSON only: {"main_issue": ""}\n\n'
+        "Document:\n{document}",
+        llm_loader=llm_loader,
+        max_tokens=256,
+    )
+
+
+def get_petitioner_arguments_chain(llm_loader: Optional[LLMLoader] = None):
+    return _simple_json_chain(
+        "Extract the petitioner/appellant arguments from this judgment as concise bullets.\n"
+        'Return JSON only: {"petitioner_arguments": ["..."]}\n\n'
+        "Document:\n{document}",
+        llm_loader=llm_loader,
+        max_tokens=384,
+    )
+
+
+def get_respondent_arguments_chain(llm_loader: Optional[LLMLoader] = None):
+    return _simple_json_chain(
+        "Extract the respondent arguments from this judgment as concise bullets.\n"
+        'Return JSON only: {"respondent_arguments": ["..."]}\n\n'
+        "Document:\n{document}",
+        llm_loader=llm_loader,
+        max_tokens=384,
+    )
+
+
+def get_reasoning_chain(llm_loader: Optional[LLMLoader] = None):
+    return _simple_json_chain(
+        "Extract the court's reasoning as concise bullet points.\n"
+        'Return JSON only: {"court_reasoning": ["..."]}\n\n'
+        "Document:\n{document}",
+        llm_loader=llm_loader,
+        max_tokens=384,
+    )
 
 
 def get_timeline_chain(llm_loader: Optional[LLMLoader] = None):
@@ -75,7 +128,9 @@ def parse_structure_output(raw: str) -> Dict[str, Any]:
     import re
     schema = {
         "case_name": "", "court": "", "judge": "", "petitioner": "", "respondent": "",
-        "sections_of_law": [], "precedents": [], "final_decision": "",
+        "main_issue": "", "petitioner_arguments": [], "respondent_arguments": [],
+        "sections_of_law": [], "precedents": [], "court_reasoning": [],
+        "final_decision": "", "outcome_normalized": "",
     }
     raw = raw.strip()
     start = raw.find("{")
@@ -86,13 +141,37 @@ def parse_structure_output(raw: str) -> Dict[str, Any]:
             for k in schema:
                 if k in data:
                     v = data[k]
-                    if k in ("sections_of_law", "precedents") and not isinstance(v, list):
+                    if k in (
+                        "sections_of_law",
+                        "precedents",
+                        "petitioner_arguments",
+                        "respondent_arguments",
+                        "court_reasoning",
+                    ) and not isinstance(v, list):
                         schema[k] = [v] if isinstance(v, str) else []
                     else:
                         schema[k] = v
         except json.JSONDecodeError:
             pass
     return schema
+
+
+def parse_single_field_json(raw: str, field: str, default: Any) -> Any:
+    import json
+
+    raw = raw.strip()
+    start = raw.find("{")
+    end = raw.rfind("}") + 1
+    if start >= 0 and end > start:
+        try:
+            data = json.loads(raw[start:end])
+            value = data.get(field, default)
+            if isinstance(default, list) and not isinstance(value, list):
+                return [value] if isinstance(value, str) else []
+            return value
+        except json.JSONDecodeError:
+            return default
+    return default
 
 
 def parse_timeline_output(raw: str) -> List[Dict[str, Any]]:

@@ -111,6 +111,7 @@ uvicorn api.app:app --reload --host 0.0.0.0 --port 8000
 - **POST /upload_document** — upload a PDF; returns `document_id`
 - **POST /analyze_document** — body: `document_id=<id>`; returns metadata, timeline, contradictions, chunks_indexed
 - **POST /ask_question** — body: `{"question": "..."}`; returns RAG answer
+- **POST /search_cases** — structured case search with filters (`act`, `section`, `outcome`, `court`) or natural-language query text
 - **GET /health** — health check
 
 ### 2. Streamlit demo UI
@@ -155,6 +156,15 @@ print(answer)
 1. Upload: `curl -X POST -F "file=@judgment.pdf" http://localhost:8000/upload_document`  
 2. Analyze: `curl -X POST -F "document_id=<id>" http://localhost:8000/analyze_document`  
 3. Ask: `curl -X POST -H "Content-Type: application/json" -d '{"question":"What was the court\'s reasoning?"}' http://localhost:8000/ask_question`
+4. Search: `curl -X POST -H "Content-Type: application/json" -d '{"act":"IPC","section":"420","outcome":"acquittal"}' http://localhost:8000/search_cases`
+
+### Extraction quality checks
+
+Run sample guardrail checks:
+
+```bash
+python evaluation/run_extraction_checks.py
+```
 
 ---
 

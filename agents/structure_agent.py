@@ -6,7 +6,6 @@ sections of law, precedents, and final decision.
 """
 
 import json
-import re
 import sys
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -29,9 +28,14 @@ class StructureAgent:
         "judge": "",
         "petitioner": "",
         "respondent": "",
+        "main_issue": "",
+        "petitioner_arguments": [],
+        "respondent_arguments": [],
         "sections_of_law": [],
         "precedents": [],
+        "court_reasoning": [],
         "final_decision": "",
+        "outcome_normalized": "",
     }
 
     def __init__(self, llm_loader: Optional[LLMLoader] = None):
@@ -65,11 +69,33 @@ class StructureAgent:
         for key in out:
             if key in data:
                 val = data[key]
-                if key in ("sections_of_law", "precedents") and not isinstance(val, list):
+                if key in (
+                    "sections_of_law",
+                    "precedents",
+                    "petitioner_arguments",
+                    "respondent_arguments",
+                    "court_reasoning",
+                ) and not isinstance(val, list):
                     out[key] = [val] if isinstance(val, str) else []
                 else:
                     out[key] = val
         return out
+
+    def _normalize_outcome(self, final_decision: str, outcome_from_model: str = "") -> str:
+        text = f"{outcome_from_model} {final_decision}".lower()
+        if any(token in text for token in ("acquit", "acquittal", "not guilty")):
+            return "acquittal"
+        if any(token in text for token in ("convict", "conviction", "guilty", "sentenced")):
+            return "conviction"
+        if "partly allowed" in text or "partially allowed" in text:
+            return "partly_allowed"
+        if "dismissed" in text or "rejected" in text:
+            return "dismissed"
+        if "allowed" in text:
+            return "allowed"
+        if "disposed" in text:
+            return "disposed"
+        return "unknown"
 
     def extract(self, document_text: str) -> Dict[str, Any]:
         """
@@ -88,13 +114,20 @@ class StructureAgent:
             "Extract legal case metadata from the following judgment text. "
             "Respond with a single JSON object only, no other text. Use this exact structure:\n"
             '{"case_name": "", "court": "", "judge": "", "petitioner": "", "respondent": "", '
-            '"sections_of_law": [], "precedents": [], "final_decision": ""}\n\n'
+            '"main_issue": "", "petitioner_arguments": [], "respondent_arguments": [], '
+            '"sections_of_law": [], "precedents": [], "court_reasoning": [], '
+            '"final_decision": "", "outcome_normalized": ""}\n\n'
             f"Document:\n{text_sample}"
         )
         llm = self._get_llm()
         try:
             response = llm.generate(prompt, max_new_tokens=1024)
             data = self._extract_json_from_response(response)
-            return self._ensure_schema(data)
+            ensured = self._ensure_schema(data)
+            ensured["outcome_normalized"] = self._normalize_outcome(
+                str(ensured.get("final_decision", "")),
+                str(ensured.get("outcome_normalized", "")),
+            )
+            return ensured
         except Exception:
             return dict(self.OUTPUT_SCHEMA)

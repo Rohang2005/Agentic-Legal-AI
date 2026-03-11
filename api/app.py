@@ -13,13 +13,14 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 # Add project root
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from pipeline.langchain_orchestrator import LangChainOrchestrator
+from utils.legal_normalizer import parse_nl_search_query
 
 app = FastAPI(
     title="Legal Agent System API",
@@ -53,6 +54,8 @@ class AnalyzeResponse(BaseModel):
     timeline: List[Dict[str, Any]]
     contradictions: List[Dict[str, Any]]
     chunks_indexed: int
+    provenance: List[Dict[str, str]] = Field(default_factory=list)
+    warnings: List[str] = Field(default_factory=list)
 
 
 class AskRequest(BaseModel):
@@ -61,6 +64,20 @@ class AskRequest(BaseModel):
 
 class AskResponse(BaseModel):
     answer: str
+
+
+class SearchCasesRequest(BaseModel):
+    act: str = ""
+    section: str = ""
+    outcome: str = ""
+    court: str = ""
+    limit: int = 50
+    query: str = ""
+
+
+class SearchCasesResponse(BaseModel):
+    total: int
+    cases: List[Dict[str, Any]]
 
 
 @app.post("/upload_document", summary="Upload a PDF document")
@@ -92,7 +109,7 @@ async def analyze_document(document_id: str = Form(...)) -> AnalyzeResponse:
         raise HTTPException(status_code=404, detail="Document not found. Upload first.")
     orch = get_orchestrator()
     try:
-        result = orch.run_from_pdf(path)
+        result = orch.run_from_pdf(path, document_id=document_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     return AnalyzeResponse(
@@ -100,6 +117,8 @@ async def analyze_document(document_id: str = Form(...)) -> AnalyzeResponse:
         timeline=result["timeline"],
         contradictions=result["contradictions"],
         chunks_indexed=result["chunks_indexed"],
+        provenance=result.get("provenance", []),
+        warnings=result.get("warnings", []),
     )
 
 
@@ -113,6 +132,27 @@ async def ask_question(body: AskRequest) -> AskResponse:
     orch = get_orchestrator()
     answer = orch.ask(body.question.strip())
     return AskResponse(answer=answer)
+
+
+@app.post("/search_cases", response_model=SearchCasesResponse, summary="Search analyzed cases by structured filters")
+async def search_cases(body: SearchCasesRequest) -> SearchCasesResponse:
+    orch = get_orchestrator()
+    filters = {
+        "act": body.act.strip(),
+        "section": body.section.strip(),
+        "outcome": body.outcome.strip(),
+        "court": body.court.strip(),
+    }
+    if body.query and not any(filters.values()):
+        filters = parse_nl_search_query(body.query)
+    matches = orch.case_store.search_cases(
+        act=filters.get("act", ""),
+        section=filters.get("section", ""),
+        outcome=filters.get("outcome", ""),
+        court=filters.get("court", ""),
+        limit=body.limit,
+    )
+    return SearchCasesResponse(total=len(matches), cases=matches)
 
 
 @app.get("/health")
