@@ -130,6 +130,13 @@ def _render_contradictions(contradictions):
         st.json(contradictions)
 
 
+def _split_user_and_internal_warnings(warnings):
+    items = _normalize_to_list(warnings)
+    internal = [w for w in items if w.startswith("final_review_")]
+    user_visible = [w for w in items if not w.startswith("final_review_")]
+    return user_visible, internal
+
+
 def get_orchestrator(
     enable_contradiction_detection: bool = False,
     require_gpu_runtime: bool = False,
@@ -205,8 +212,13 @@ if st.session_state.get("analyzed") and "analysis" in st.session_state:
             st.markdown(f"- {bullet}")
 
     _render_metadata(metadata_view)
-    if warnings_view:
-        st.warning("Extraction warnings: " + " | ".join(warnings_view))
+    user_warnings, internal_warnings = _split_user_and_internal_warnings(warnings_view)
+    if user_warnings:
+        st.warning("Extraction warnings: " + " | ".join(user_warnings))
+    if internal_warnings:
+        with st.expander("Internal review notes", expanded=False):
+            for note in internal_warnings:
+                st.caption(note)
     with st.expander("Provenance", expanded=False):
         st.json(analysis.get("provenance", []))
 

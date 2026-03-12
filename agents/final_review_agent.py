@@ -5,6 +5,7 @@ Final Review Agent - Post-processes extracted outputs for frontend readability.
 from __future__ import annotations
 
 import json
+import re
 from typing import Any, Dict, List
 
 from models.llm_loader import LLMLoader
@@ -100,22 +101,62 @@ class FinalReviewAgent:
             return None
 
     @staticmethod
-    def _clean_text(value: Any, max_chars: int = 320) -> str:
+    def _clean_text(value: Any, max_chars: int = 320, prefer_sentence: bool = False) -> str:
         text = " ".join(str(value or "").split()).strip()
         if not text:
             return ""
-        return text[:max_chars]
+        text = text.strip(" -\t")
+        text = text.lstrip()
+        text = re.sub(r"^\d+\s*[\).:-]\s+", "", text)
+        if len(text) <= max_chars:
+            return text
+
+        # Prefer not to cut in the middle of a sentence.
+        if prefer_sentence:
+            sentence_end = max(text.rfind(".", 0, max_chars + 1), text.rfind("?", 0, max_chars + 1), text.rfind("!", 0, max_chars + 1))
+            if sentence_end >= int(max_chars * 0.55):
+                return text[: sentence_end + 1].strip()
+
+        # Fallback: cut at last whitespace before limit.
+        cut = text.rfind(" ", 0, max_chars + 1)
+        if cut < int(max_chars * 0.5):
+            cut = max_chars
+        clipped = text[:cut].strip()
+        if clipped.endswith((".", "?", "!")):
+            return clipped
+        return f"{clipped}..."
 
     @staticmethod
-    def _to_list(value: Any, max_items: int = 10) -> List[str]:
+    def _looks_incomplete(text: str) -> bool:
+        if not text:
+            return True
+        low = text.lower().strip()
+        if "..." in low:
+            return True
+        if low.endswith((",", ";", ":", "-", " i.e.", " i.e.,")):
+            return True
+        if low.endswith((" and", " or", " to", " of", " for", " with", " through", " by", " under")):
+            return True
+        return False
+
+    @staticmethod
+    def _to_list(
+        value: Any,
+        max_items: int = 10,
+        max_chars: int = 320,
+        prefer_sentence: bool = False,
+        drop_incomplete: bool = True,
+    ) -> List[str]:
         if value is None:
             return []
         raw = value if isinstance(value, list) else [value]
         out: List[str] = []
         seen: set[str] = set()
         for item in raw:
-            cleaned = FinalReviewAgent._clean_text(item)
+            cleaned = FinalReviewAgent._clean_text(item, max_chars=max_chars, prefer_sentence=prefer_sentence)
             if not cleaned:
+                continue
+            if drop_incomplete and FinalReviewAgent._looks_incomplete(cleaned):
                 continue
             key = cleaned.lower()
             if key in seen:
@@ -128,19 +169,67 @@ class FinalReviewAgent:
 
     @staticmethod
     def _normalize_metadata(metadata: Dict[str, Any]) -> Dict[str, Any]:
+        case_name = FinalReviewAgent._clean_text(metadata.get("case_name", ""), 400)
+        court = FinalReviewAgent._clean_text(metadata.get("court", ""), 300)
+        judge = FinalReviewAgent._clean_text(metadata.get("judge", ""), 260)
+        petitioner = FinalReviewAgent._clean_text(metadata.get("petitioner", ""), 260)
+        respondent = FinalReviewAgent._clean_text(metadata.get("respondent", ""), 260)
+        main_issue = FinalReviewAgent._clean_text(metadata.get("main_issue", ""), 520, prefer_sentence=True)
+        final_decision = FinalReviewAgent._clean_text(metadata.get("final_decision", ""), 520, prefer_sentence=True)
+        if FinalReviewAgent._looks_incomplete(case_name):
+            case_name = ""
+        if FinalReviewAgent._looks_incomplete(court):
+            court = ""
+        if FinalReviewAgent._looks_incomplete(judge):
+            judge = ""
+        if FinalReviewAgent._looks_incomplete(petitioner):
+            petitioner = ""
+        if FinalReviewAgent._looks_incomplete(respondent):
+            respondent = ""
+        if FinalReviewAgent._looks_incomplete(main_issue):
+            main_issue = ""
+        if FinalReviewAgent._looks_incomplete(final_decision):
+            final_decision = ""
         return {
-            "case_name": FinalReviewAgent._clean_text(metadata.get("case_name", ""), 220),
-            "court": FinalReviewAgent._clean_text(metadata.get("court", ""), 220),
-            "judge": FinalReviewAgent._clean_text(metadata.get("judge", ""), 220),
-            "petitioner": FinalReviewAgent._clean_text(metadata.get("petitioner", ""), 220),
-            "respondent": FinalReviewAgent._clean_text(metadata.get("respondent", ""), 220),
-            "main_issue": FinalReviewAgent._clean_text(metadata.get("main_issue", ""), 320),
-            "petitioner_arguments": FinalReviewAgent._to_list(metadata.get("petitioner_arguments", []), max_items=8),
-            "respondent_arguments": FinalReviewAgent._to_list(metadata.get("respondent_arguments", []), max_items=8),
-            "sections_of_law": FinalReviewAgent._to_list(metadata.get("sections_of_law", []), max_items=12),
-            "precedents": FinalReviewAgent._to_list(metadata.get("precedents", []), max_items=10),
-            "court_reasoning": FinalReviewAgent._to_list(metadata.get("court_reasoning", []), max_items=10),
-            "final_decision": FinalReviewAgent._clean_text(metadata.get("final_decision", ""), 320),
+            "case_name": case_name,
+            "court": court,
+            "judge": judge,
+            "petitioner": petitioner,
+            "respondent": respondent,
+            "main_issue": main_issue,
+            "petitioner_arguments": FinalReviewAgent._to_list(
+                metadata.get("petitioner_arguments", []),
+                max_items=8,
+                max_chars=420,
+                prefer_sentence=True,
+            ),
+            "respondent_arguments": FinalReviewAgent._to_list(
+                metadata.get("respondent_arguments", []),
+                max_items=8,
+                max_chars=420,
+                prefer_sentence=True,
+            ),
+            "sections_of_law": FinalReviewAgent._to_list(
+                metadata.get("sections_of_law", []),
+                max_items=12,
+                max_chars=180,
+                prefer_sentence=False,
+                drop_incomplete=False,
+            ),
+            "precedents": FinalReviewAgent._to_list(
+                metadata.get("precedents", []),
+                max_items=10,
+                max_chars=260,
+                prefer_sentence=False,
+                drop_incomplete=False,
+            ),
+            "court_reasoning": FinalReviewAgent._to_list(
+                metadata.get("court_reasoning", []),
+                max_items=10,
+                max_chars=460,
+                prefer_sentence=True,
+            ),
+            "final_decision": final_decision,
             "outcome_normalized": FinalReviewAgent._clean_text(metadata.get("outcome_normalized", ""), 50),
         }
 
@@ -152,8 +241,10 @@ class FinalReviewAgent:
             if not isinstance(item, dict):
                 continue
             date = FinalReviewAgent._clean_text(item.get("date", ""), 40)
-            event = FinalReviewAgent._clean_text(item.get("event", ""), 260)
+            event = FinalReviewAgent._clean_text(item.get("event", ""), 380, prefer_sentence=True)
             if not event:
+                continue
+            if FinalReviewAgent._looks_incomplete(event):
                 continue
             key = f"{date}|{event}".lower()
             if key in seen:
@@ -174,6 +265,8 @@ class FinalReviewAgent:
             s1 = FinalReviewAgent._clean_text(item.get("statement_1", ""), 280)
             s2 = FinalReviewAgent._clean_text(item.get("statement_2", ""), 280)
             if len(s1) < 25 or len(s2) < 25:
+                continue
+            if FinalReviewAgent._looks_incomplete(s1) or FinalReviewAgent._looks_incomplete(s2):
                 continue
             if s1.lower() == s2.lower():
                 continue
@@ -247,15 +340,20 @@ class FinalReviewAgent:
                 llm_summary = refined.get("summary", [])
                 if isinstance(llm_headline, dict):
                     headline = {
-                        "case_name": self._clean_text(llm_headline.get("case_name", headline.get("case_name", "")), 220)
+                        "case_name": self._clean_text(llm_headline.get("case_name", headline.get("case_name", "")), 400)
                         or headline.get("case_name", ""),
-                        "court": self._clean_text(llm_headline.get("court", headline.get("court", "")), 220)
+                        "court": self._clean_text(llm_headline.get("court", headline.get("court", "")), 300)
                         or headline.get("court", ""),
                         "outcome": self._clean_text(llm_headline.get("outcome", headline.get("outcome", "")), 50)
                         or headline.get("outcome", ""),
                     }
                 if isinstance(llm_summary, list):
-                    summary = self._to_list(llm_summary, max_items=6) or summary
+                    summary = self._to_list(
+                        llm_summary,
+                        max_items=6,
+                        max_chars=320,
+                        prefer_sentence=True,
+                    ) or summary
                 review_notes.append(f"final_review_llm:{self.model_id}")
             else:
                 review_notes.append("final_review_llm_fallback_used")
