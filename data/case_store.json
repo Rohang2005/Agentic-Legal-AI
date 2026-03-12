@@ -1,1 +1,120 @@
-[]
+[
+  {
+    "case_name": "",
+    "court": "",
+    "judge": "",
+    "petitioner": "",
+    "respondent": "",
+    "main_issue": "",
+    "petitioner_arguments": [],
+    "respondent_arguments": [],
+    "sections_of_law": [],
+    "precedents": [],
+    "court_reasoning": [],
+    "final_decision": "",
+    "outcome_normalized": "unknown",
+    "document_id": "tmpl48ohm4h",
+    "sections_normalized": []
+  },
+  {
+    "case_name": "A v. B",
+    "court": "High Court of XYZ",
+    "judge": "",
+    "petitioner": "A",
+    "respondent": "B",
+    "main_issue": "Whether A had a right to be heard before being sentenced for his crime.",
+    "petitioner_arguments": [],
+    "respondent_arguments": [],
+    "sections_of_law": [
+      "Evidence Act",
+      "Sentence"
+    ],
+    "precedents": [],
+    "court_reasoning": [
+      "Petition was not supported by any evidence",
+      "Dismissed"
+    ],
+    "final_decision": "Petition dismissed",
+    "outcome_normalized": "dismissed",
+    "document_id": "smoke",
+    "sections_normalized": [
+      {
+        "act": "",
+        "section": "",
+        "raw_text": "Evidence Act"
+      },
+      {
+        "act": "",
+        "section": "",
+        "raw_text": "Sentence"
+      }
+    ]
+  },
+  {
+    "case_name": "Asianet Satellite Communications Ltd vs The Assistant",
+    "court": "IN THE HIGH COURT OF KERALA AT ERNAKULAM",
+    "judge": "THE HONOURABLE MR.JUSTICE MOHAMMED NIAS C.P.",
+    "petitioner": "",
+    "respondent": "",
+    "main_issue": "",
+    "petitioner_arguments": [],
+    "respondent_arguments": [],
+    "sections_of_law": [
+      "Section 61 Telecommunications Act",
+      "Section 61 Telecommunications",
+      "Section 164 Act read with Part III of the Telegraph",
+      "Section 51 Electricity Act for",
+      "Section 174 Electricity Act gives the Act an",
+      "Section s",
+      "Section 3 Telecommunication Act",
+      "Section 10 said Act"
+    ],
+    "precedents": [],
+    "court_reasoning": [],
+    "final_decision": "",
+    "outcome_normalized": "unknown",
+    "document_id": "tmp0ny2fbxt",
+    "sections_normalized": [
+      {
+        "act": "",
+        "section": "61",
+        "raw_text": "Section 61 Telecommunications Act"
+      },
+      {
+        "act": "",
+        "section": "61",
+        "raw_text": "Section 61 Telecommunications"
+      },
+      {
+        "act": "",
+        "section": "164",
+        "raw_text": "Section 164 Act read with Part III of the Telegraph"
+      },
+      {
+        "act": "",
+        "section": "51",
+        "raw_text": "Section 51 Electricity Act for"
+      },
+      {
+        "act": "",
+        "section": "174",
+        "raw_text": "Section 174 Electricity Act gives the Act an"
+      },
+      {
+        "act": "",
+        "section": "s",
+        "raw_text": "Section s"
+      },
+      {
+        "act": "",
+        "section": "3",
+        "raw_text": "Section 3 Telecommunication Act"
+      },
+      {
+        "act": "",
+        "section": "10",
+        "raw_text": "Section 10 said Act"
+      }
+    ]
+  }
+]

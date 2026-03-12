@@ -28,10 +28,23 @@ uploaded = st.file_uploader("Upload a legal judgment PDF", type=["pdf"], key="pd
 # Step 2 — Analyze Document
 st.subheader("Step 2 — Analyze Document")
 analyze_clicked = st.button("**Analyze Case**", type="primary")
+run_contradiction_detection = st.checkbox(
+    "Run contradiction detection (slower)",
+    value=False,
+    help="This loads a separate NLI model and can add significant latency on CPU.",
+)
+st.caption("First run can still be slow while models are downloaded and initialized.")
 
-def get_orchestrator():
-    if "orchestrator" not in st.session_state:
-        st.session_state.orchestrator = LangChainOrchestrator(use_llm_parser=False)
+def get_orchestrator(enable_contradiction_detection: bool = False):
+    if (
+        "orchestrator" not in st.session_state
+        or st.session_state.get("orch_enable_contra") != enable_contradiction_detection
+    ):
+        st.session_state.orchestrator = LangChainOrchestrator(
+            use_llm_parser=False,
+            enable_contradiction_detection=enable_contradiction_detection,
+        )
+        st.session_state["orch_enable_contra"] = enable_contradiction_detection
     return st.session_state.orchestrator
 
 if uploaded is not None and analyze_clicked:
@@ -40,7 +53,7 @@ if uploaded is not None and analyze_clicked:
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
                 tmp.write(uploaded.getvalue())
                 tmp_path = tmp.name
-            orch = get_orchestrator()
+            orch = get_orchestrator(enable_contradiction_detection=run_contradiction_detection)
             result = orch.run_from_pdf(tmp_path)
             Path(tmp_path).unlink(missing_ok=True)
             st.session_state["analysis"] = result
@@ -89,7 +102,7 @@ if st.session_state.get("analyzed") and "analysis" in st.session_state:
         placeholder="e.g. What was the court's reasoning?",
     )
     if question:
-        orch = get_orchestrator()
+        orch = get_orchestrator(enable_contradiction_detection=run_contradiction_detection)
         with st.spinner("Searching document and generating answer..."):
             answer = orch.ask(question)
         st.markdown("**Answer:**")
@@ -113,7 +126,7 @@ if st.session_state.get("analyzed") and "analysis" in st.session_state:
         court = st.text_input("Court", value="", key="search_court")
 
     if st.button("Search Cases"):
-        orch = get_orchestrator()
+        orch = get_orchestrator(enable_contradiction_detection=run_contradiction_detection)
         matches = orch.case_store.search_cases(
             act=act,
             section=section,

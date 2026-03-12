@@ -66,7 +66,7 @@ def _simple_json_chain(prompt_text: str, llm_loader: Optional[LLMLoader] = None,
 def get_issue_chain(llm_loader: Optional[LLMLoader] = None):
     return _simple_json_chain(
         "Identify the core legal issue in this judgment.\n"
-        'Return JSON only: {"main_issue": ""}\n\n'
+        'Return JSON only: {{"main_issue": ""}}\n\n'
         "Document:\n{document}",
         llm_loader=llm_loader,
         max_tokens=256,
@@ -76,7 +76,7 @@ def get_issue_chain(llm_loader: Optional[LLMLoader] = None):
 def get_petitioner_arguments_chain(llm_loader: Optional[LLMLoader] = None):
     return _simple_json_chain(
         "Extract the petitioner/appellant arguments from this judgment as concise bullets.\n"
-        'Return JSON only: {"petitioner_arguments": ["..."]}\n\n'
+        'Return JSON only: {{"petitioner_arguments": ["..."]}}\n\n'
         "Document:\n{document}",
         llm_loader=llm_loader,
         max_tokens=384,
@@ -86,7 +86,7 @@ def get_petitioner_arguments_chain(llm_loader: Optional[LLMLoader] = None):
 def get_respondent_arguments_chain(llm_loader: Optional[LLMLoader] = None):
     return _simple_json_chain(
         "Extract the respondent arguments from this judgment as concise bullets.\n"
-        'Return JSON only: {"respondent_arguments": ["..."]}\n\n'
+        'Return JSON only: {{"respondent_arguments": ["..."]}}\n\n'
         "Document:\n{document}",
         llm_loader=llm_loader,
         max_tokens=384,
@@ -96,7 +96,7 @@ def get_respondent_arguments_chain(llm_loader: Optional[LLMLoader] = None):
 def get_reasoning_chain(llm_loader: Optional[LLMLoader] = None):
     return _simple_json_chain(
         "Extract the court's reasoning as concise bullet points.\n"
-        'Return JSON only: {"court_reasoning": ["..."]}\n\n'
+        'Return JSON only: {{"court_reasoning": ["..."]}}\n\n'
         "Document:\n{document}",
         llm_loader=llm_loader,
         max_tokens=384,

@@ -8,12 +8,14 @@ while keeping the same interface as LegalPipelineOrchestrator.
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 import logging
+import re
 
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from agents.parser_agent import ParserAgent
 from agents.contradiction_agent import ContradictionAgent
+from models.llm_loader import LLMLoader
 from models.embedding_model import EmbeddingModel
 from retrieval.vector_store import LegalVectorStore
 from retrieval.case_store import CaseStore
@@ -47,6 +49,7 @@ class LangChainOrchestrator:
         chunk_size: int = 512,
         chunk_overlap: int = 64,
         use_llm_parser: bool = False,
+        enable_contradiction_detection: bool = False,
         vector_store: Optional[LegalVectorStore] = None,
         index_path: Optional[Path] = None,
         case_store: Optional[CaseStore] = None,
@@ -60,13 +63,21 @@ class LangChainOrchestrator:
             index_path=index_path,
         )
 
-        self._structure_chain = get_structure_chain()
-        self._timeline_chain = get_timeline_chain()
-        self._rag_chain = get_rag_chain(self.vector_store)
-        self._issue_chain = get_issue_chain()
-        self._petitioner_arguments_chain = get_petitioner_arguments_chain()
-        self._respondent_arguments_chain = get_respondent_arguments_chain()
-        self._reasoning_chain = get_reasoning_chain()
+        # Reuse one loader to avoid repeated heavyweight model initialization per chain.
+        self._llm_loader = LLMLoader(
+            "Qwen/Qwen2-1.5B-Instruct",
+            max_new_tokens=1024,
+            do_sample=False,
+            temperature=0.2,
+        )
+        self._structure_chain = get_structure_chain(llm_loader=self._llm_loader)
+        self._timeline_chain = get_timeline_chain(llm_loader=self._llm_loader)
+        self._rag_chain = get_rag_chain(self.vector_store, llm_loader=self._llm_loader)
+        self._issue_chain = get_issue_chain(llm_loader=self._llm_loader)
+        self._petitioner_arguments_chain = get_petitioner_arguments_chain(llm_loader=self._llm_loader)
+        self._respondent_arguments_chain = get_respondent_arguments_chain(llm_loader=self._llm_loader)
+        self._reasoning_chain = get_reasoning_chain(llm_loader=self._llm_loader)
+        self.enable_contradiction_detection = enable_contradiction_detection
         self.case_store = case_store or CaseStore()
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -77,28 +88,115 @@ class LangChainOrchestrator:
         self._last_provenance: List[Dict[str, str]] = []
         self._last_warnings: List[str] = []
 
+    def _fallback_metadata_from_text(self, metadata: Dict[str, Any], cleaned_text: str) -> Dict[str, Any]:
+        """Best-effort heuristic fill for key fields when LLM JSON is sparse."""
+        merged = dict(metadata)
+        lines = [line.strip() for line in cleaned_text.splitlines() if line.strip()]
+        first_block = lines[:80]
+        tail_block = lines[-120:] if len(lines) > 120 else lines
+
+        if not merged.get("case_name"):
+            for line in first_block:
+                if re.search(r"\b(v\.|vs\.?|versus)\b", line, flags=re.IGNORECASE):
+                    merged["case_name"] = line[:180]
+                    break
+
+        if not merged.get("court"):
+            for line in first_block:
+                if re.search(r"\bcourt\b", line, flags=re.IGNORECASE):
+                    merged["court"] = line[:180]
+                    break
+
+        if not merged.get("judge"):
+            for line in first_block:
+                if re.search(r"\b(justice|coram|hon'?ble)\b", line, flags=re.IGNORECASE):
+                    merged["judge"] = line[:180]
+                    break
+
+        if not merged.get("final_decision"):
+            decision_keywords = ("dismissed", "allowed", "disposed", "acquitted", "convicted", "guilty")
+            for line in reversed(tail_block):
+                if any(k in line.lower() for k in decision_keywords):
+                    merged["final_decision"] = line[:240]
+                    break
+
+        if not merged.get("sections_of_law"):
+            sections = []
+            for match in re.finditer(
+                r"\bsection\s*([0-9A-Za-z\-]+)\s*(?:of\s+the\s+)?([A-Za-z .()]{0,40})",
+                cleaned_text,
+                flags=re.IGNORECASE,
+            ):
+                sec = match.group(1).strip()
+                act_hint = (match.group(2) or "").strip()
+                if sec:
+                    sections.append(f"Section {sec} {act_hint}".strip())
+                if len(sections) >= 8:
+                    break
+            if sections:
+                merged["sections_of_law"] = sections
+
+        merged["outcome_normalized"] = normalize_outcome(
+            str(merged.get("final_decision", "")),
+            str(merged.get("outcome_normalized", "")),
+        )
+        return merged
+
+    def _fallback_timeline_from_text(self, cleaned_text: str) -> List[Dict[str, Any]]:
+        """Extract a lightweight timeline by date-like markers in text."""
+        date_pattern = re.compile(
+            r"\b(\d{1,2}[./-]\d{1,2}[./-]\d{2,4}|"
+            r"\d{4}[./-]\d{1,2}[./-]\d{1,2}|"
+            r"\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4})\b"
+        )
+        sentences = re.split(r"(?<=[.!?])\s+", cleaned_text)
+        timeline: List[Dict[str, Any]] = []
+        seen: set[str] = set()
+        for sentence in sentences:
+            if len(sentence.strip()) < 15:
+                continue
+            match = date_pattern.search(sentence)
+            if not match:
+                continue
+            date = match.group(1)
+            event = sentence.strip()[:220]
+            key = f"{date}|{event}"
+            if key in seen:
+                continue
+            seen.add(key)
+            timeline.append({"date": date, "event": event})
+            if len(timeline) >= 12:
+                break
+        return timeline
+
     def _merge_specialized_fields(self, metadata: Dict[str, Any], document_text: str) -> Dict[str, Any]:
         merged = dict(metadata)
         text_sample = document_text[:8000] if len(document_text) > 8000 else document_text
 
-        issue_raw = self._issue_chain.invoke({"document": text_sample})
-        pet_raw = self._petitioner_arguments_chain.invoke({"document": text_sample})
-        resp_raw = self._respondent_arguments_chain.invoke({"document": text_sample})
-        reasoning_raw = self._reasoning_chain.invoke({"document": text_sample})
+        if not merged.get("main_issue"):
+            issue_raw = self._issue_chain.invoke({"document": text_sample})
+            issue = parse_single_field_json(str(issue_raw), "main_issue", "")
+            if issue:
+                merged["main_issue"] = issue
 
-        issue = parse_single_field_json(str(issue_raw), "main_issue", "")
-        petitioner_arguments = parse_single_field_json(str(pet_raw), "petitioner_arguments", [])
-        respondent_arguments = parse_single_field_json(str(resp_raw), "respondent_arguments", [])
-        court_reasoning = parse_single_field_json(str(reasoning_raw), "court_reasoning", [])
+        if not merged.get("petitioner_arguments"):
+            pet_raw = self._petitioner_arguments_chain.invoke({"document": text_sample})
+            petitioner_arguments = parse_single_field_json(str(pet_raw), "petitioner_arguments", [])
+            if petitioner_arguments:
+                merged["petitioner_arguments"] = petitioner_arguments
 
-        if issue and not merged.get("main_issue"):
-            merged["main_issue"] = issue
-        if petitioner_arguments:
-            merged["petitioner_arguments"] = petitioner_arguments
-        if respondent_arguments:
-            merged["respondent_arguments"] = respondent_arguments
-        if court_reasoning:
-            merged["court_reasoning"] = court_reasoning
+        if not merged.get("respondent_arguments"):
+            resp_raw = self._respondent_arguments_chain.invoke({"document": text_sample})
+            respondent_arguments = parse_single_field_json(str(resp_raw), "respondent_arguments", [])
+            if respondent_arguments:
+                merged["respondent_arguments"] = respondent_arguments
+
+        if not merged.get("court_reasoning"):
+            reasoning_raw = self._reasoning_chain.invoke({"document": text_sample})
+            court_reasoning = parse_single_field_json(str(reasoning_raw), "court_reasoning", [])
+            if court_reasoning:
+                merged["court_reasoning"] = court_reasoning
+
         merged["outcome_normalized"] = normalize_outcome(
             str(merged.get("final_decision", "")),
             str(merged.get("outcome_normalized", "")),
@@ -131,6 +229,7 @@ class LangChainOrchestrator:
             metadata = self._merge_specialized_fields(metadata, cleaned)
         except Exception as e:
             self.logger.warning("Specialized merge failed: %s", e)
+        metadata = self._fallback_metadata_from_text(metadata, cleaned)
 
         try:
             timeline_raw = self._timeline_chain.invoke({"document": text_sample})
@@ -139,11 +238,17 @@ class LangChainOrchestrator:
             )
         except Exception as e:
             raise RuntimeError(f"Timeline extraction failed (LangChain): {e}") from e
+        if not timeline:
+            timeline = self._fallback_timeline_from_text(cleaned)
 
-        try:
-            contradictions = self.contradiction_agent.detect(cleaned)
-        except Exception as e:
-            raise RuntimeError(f"Contradiction detection failed: {e}") from e
+        if self.enable_contradiction_detection:
+            try:
+                # Keep contradiction checks bounded; full pairwise NLI is expensive on CPU.
+                contradictions = self.contradiction_agent.detect(cleaned, max_pairs=24)
+            except Exception as e:
+                raise RuntimeError(f"Contradiction detection failed: {e}") from e
+        else:
+            contradictions = []
 
         try:
             self.vector_store.add_texts(chunks)

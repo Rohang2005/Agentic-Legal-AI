@@ -83,9 +83,6 @@ class LLMLoader:
             "text-generation",
             model=self._model,
             tokenizer=self._tokenizer,
-            max_new_tokens=self.max_new_tokens,
-            do_sample=self.do_sample,
-            temperature=self.temperature,
         )
         return self._pipe
 
@@ -97,6 +94,12 @@ class LLMLoader:
             Generated text (only the new tokens, not the prompt).
         """
         pipe = self.load()
+        kwargs.setdefault("max_new_tokens", self.max_new_tokens)
+        kwargs.setdefault("do_sample", self.do_sample)
+        kwargs.setdefault("temperature", self.temperature)
+        if kwargs.get("max_new_tokens") is not None:
+            # Avoid transformers warning when model generation_config has max_length default.
+            kwargs.setdefault("max_length", None)
         out = pipe(prompt, **kwargs)
         if out and len(out) > 0 and "generated_text" in out[0]:
             full = out[0]["generated_text"]
