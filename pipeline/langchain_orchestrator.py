@@ -9,12 +9,15 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 import logging
 import re
+import hashlib
+import time
 
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from agents.parser_agent import ParserAgent
 from agents.contradiction_agent import ContradictionAgent
+from agents.final_review_agent import FinalReviewAgent
 from models.llm_loader import LLMLoader
 from models.embedding_model import EmbeddingModel
 from retrieval.vector_store import LegalVectorStore
@@ -50,6 +53,8 @@ class LangChainOrchestrator:
         chunk_overlap: int = 64,
         use_llm_parser: bool = False,
         enable_contradiction_detection: bool = False,
+        enable_llm_enrichment: bool = False,
+        require_gpu: bool = False,
         vector_store: Optional[LegalVectorStore] = None,
         index_path: Optional[Path] = None,
         case_store: Optional[CaseStore] = None,
@@ -57,15 +62,19 @@ class LangChainOrchestrator:
         self.chunker = TextChunker(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
         self.parser = ParserAgent(use_llm=use_llm_parser)
         self.contradiction_agent = ContradictionAgent()
-        self.embedding_model = EmbeddingModel()
+        self.final_review_agent = FinalReviewAgent(use_llm=True, require_gpu=require_gpu)
+        self.require_gpu = require_gpu
+        self.embedding_model = EmbeddingModel(require_gpu=require_gpu)
         self.vector_store = vector_store or LegalVectorStore(
             embedding_model=self.embedding_model,
             index_path=index_path,
         )
 
         # Reuse one loader to avoid repeated heavyweight model initialization per chain.
+        self.enable_llm_enrichment = enable_llm_enrichment
         self._llm_loader = LLMLoader(
             "Qwen/Qwen2-1.5B-Instruct",
+            require_gpu=require_gpu,
             max_new_tokens=1024,
             do_sample=False,
             temperature=0.2,
@@ -87,6 +96,110 @@ class LangChainOrchestrator:
         self._last_cleaned_text: Optional[str] = None
         self._last_provenance: List[Dict[str, str]] = []
         self._last_warnings: List[str] = []
+        self._last_reviewed_output: Dict[str, Any] = {}
+        self._analysis_cache: Dict[str, Dict[str, Any]] = {}
+
+    @staticmethod
+    def _base_metadata_schema() -> Dict[str, Any]:
+        return {
+            "case_name": "",
+            "court": "",
+            "judge": "",
+            "petitioner": "",
+            "respondent": "",
+            "main_issue": "",
+            "petitioner_arguments": [],
+            "respondent_arguments": [],
+            "sections_of_law": [],
+            "precedents": [],
+            "court_reasoning": [],
+            "final_decision": "",
+            "outcome_normalized": "",
+        }
+
+    @staticmethod
+    def _coalesce_metadata(primary: Dict[str, Any], secondary: Dict[str, Any]) -> Dict[str, Any]:
+        merged = dict(primary)
+        for key, value in secondary.items():
+            if key not in merged:
+                merged[key] = value
+                continue
+            current = merged.get(key)
+            if isinstance(current, list):
+                if not current and isinstance(value, list):
+                    merged[key] = value
+            else:
+                if (current is None or str(current).strip() == "") and str(value).strip():
+                    merged[key] = value
+        return merged
+
+    @staticmethod
+    def _dedupe_lines(items: List[str], max_items: int = 8) -> List[str]:
+        out: List[str] = []
+        seen: set[str] = set()
+        for item in items:
+            clean = " ".join(str(item).split()).strip()
+            if not clean:
+                continue
+            key = clean.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(clean)
+            if len(out) >= max_items:
+                break
+        return out
+
+    @staticmethod
+    def _extract_sentences_by_keywords(text: str, keywords: List[str], max_items: int = 6) -> List[str]:
+        candidates = re.split(r"(?<=[.!?])\s+", text)
+        matched: List[str] = []
+        for sentence in candidates:
+            s = sentence.strip()
+            if len(s) < 20:
+                continue
+            low = s.lower()
+            if any(token in low for token in keywords):
+                matched.append(s[:260])
+                if len(matched) >= max_items:
+                    break
+        return LangChainOrchestrator._dedupe_lines(matched, max_items=max_items)
+
+    def _build_salient_sample(self, text: str, max_chars: int = 6000) -> str:
+        """Compose a compact but informative sample for LLM extraction."""
+        if len(text) <= max_chars:
+            return text
+        head = text[:2200]
+        tail = text[-1800:]
+        keyword_lines: List[str] = []
+        for line in text.splitlines():
+            s = line.strip()
+            if len(s) < 25:
+                continue
+            low = s.lower()
+            if any(
+                token in low
+                for token in (
+                    "section ",
+                    "issue",
+                    "petitioner",
+                    "respondent",
+                    "appellant",
+                    "therefore",
+                    "held",
+                    "order",
+                    "judgment",
+                    "v.",
+                    "vs.",
+                    "versus",
+                )
+            ):
+                keyword_lines.append(s)
+                if len(keyword_lines) >= 35:
+                    break
+        mid = "\n".join(keyword_lines)
+        sample = f"{head}\n\n{mid}\n\n{tail}".strip()
+        return sample[:max_chars]
 
     def _fallback_metadata_from_text(self, metadata: Dict[str, Any], cleaned_text: str) -> Dict[str, Any]:
         """Best-effort heuristic fill for key fields when LLM JSON is sparse."""
@@ -97,7 +210,7 @@ class LangChainOrchestrator:
 
         if not merged.get("case_name"):
             for line in first_block:
-                if re.search(r"\b(v\.|vs\.?|versus)\b", line, flags=re.IGNORECASE):
+                if re.search(r"\s(v\.|vs\.?|versus)\s", line, flags=re.IGNORECASE):
                     merged["case_name"] = line[:180]
                     break
 
@@ -136,6 +249,43 @@ class LangChainOrchestrator:
             if sections:
                 merged["sections_of_law"] = sections
 
+        if not merged.get("precedents"):
+            precedent_candidates = re.findall(
+                r"\b([A-Z][A-Za-z0-9.&,'()\- ]{2,80}\s+(?:v\.|vs\.?|versus)\s+[A-Z][A-Za-z0-9.&,'()\- ]{2,80})\b",
+                cleaned_text,
+            )
+            merged["precedents"] = self._dedupe_lines(precedent_candidates, max_items=10)
+
+        if not merged.get("main_issue"):
+            issue_lines = self._extract_sentences_by_keywords(
+                cleaned_text,
+                keywords=["issue", "question for consideration", "point for determination", "dispute"],
+                max_items=2,
+            )
+            if issue_lines:
+                merged["main_issue"] = issue_lines[0]
+
+        if not merged.get("petitioner_arguments"):
+            merged["petitioner_arguments"] = self._extract_sentences_by_keywords(
+                cleaned_text,
+                keywords=["petitioner submitted", "appellant submitted", "for the petitioner", "learned counsel for the petitioner"],
+                max_items=6,
+            )
+
+        if not merged.get("respondent_arguments"):
+            merged["respondent_arguments"] = self._extract_sentences_by_keywords(
+                cleaned_text,
+                keywords=["respondent submitted", "for the respondent", "state submitted", "public prosecutor"],
+                max_items=6,
+            )
+
+        if not merged.get("court_reasoning"):
+            merged["court_reasoning"] = self._extract_sentences_by_keywords(
+                cleaned_text,
+                keywords=["we hold", "it is clear", "therefore", "in view of", "this court finds", "observed that"],
+                max_items=8,
+            )
+
         merged["outcome_normalized"] = normalize_outcome(
             str(merged.get("final_decision", "")),
             str(merged.get("outcome_normalized", "")),
@@ -171,7 +321,7 @@ class LangChainOrchestrator:
 
     def _merge_specialized_fields(self, metadata: Dict[str, Any], document_text: str) -> Dict[str, Any]:
         merged = dict(metadata)
-        text_sample = document_text[:8000] if len(document_text) > 8000 else document_text
+        text_sample = self._build_salient_sample(document_text, max_chars=8000)
 
         if not merged.get("main_issue"):
             issue_raw = self._issue_chain.invoke({"document": text_sample})
@@ -209,6 +359,19 @@ class LangChainOrchestrator:
         return self.run_from_text(raw_text, document_id=doc_id)
 
     def run_from_text(self, raw_text: str, document_id: str = "latest") -> Dict[str, Any]:
+        started = time.perf_counter()
+        cache_key = hashlib.sha1(raw_text.encode("utf-8", errors="ignore")).hexdigest()
+        if cache_key in self._analysis_cache:
+            cached = self._analysis_cache[cache_key]
+            self._last_metadata = cached.get("metadata")
+            self._last_timeline = cached.get("timeline")
+            self._last_contradictions = cached.get("contradictions")
+            self._last_cleaned_text = cached.get("cleaned_text")
+            self._last_provenance = cached.get("provenance", [])
+            self._last_warnings = cached.get("warnings", [])
+            self._last_reviewed_output = cached.get("final_review", {})
+            return dict(cached)
+
         try:
             cleaned = self.parser.parse(raw_text)
         except Exception as e:
@@ -216,37 +379,52 @@ class LangChainOrchestrator:
         self._last_cleaned_text = cleaned
 
         chunks = self.chunker.chunk(cleaned)
-        text_sample = cleaned[:6000] if len(cleaned) > 6000 else cleaned
+        text_sample = self._build_salient_sample(cleaned, max_chars=6000)
 
-        try:
-            structure_raw = self._structure_chain.invoke({"document": text_sample})
-            metadata = parse_structure_output(
-                structure_raw if isinstance(structure_raw, str) else str(structure_raw)
-            )
-        except Exception as e:
-            raise RuntimeError(f"Structure extraction failed (LangChain): {e}") from e
-        try:
-            metadata = self._merge_specialized_fields(metadata, cleaned)
-        except Exception as e:
-            self.logger.warning("Specialized merge failed: %s", e)
+        metadata = self._fallback_metadata_from_text(self._base_metadata_schema(), cleaned)
+        critical_missing = any(
+            not str(metadata.get(field, "")).strip()
+            for field in ("case_name", "court", "final_decision")
+        )
+
+        if self.enable_llm_enrichment and critical_missing:
+            try:
+                structure_raw = self._structure_chain.invoke({"document": text_sample})
+                llm_metadata = parse_structure_output(
+                    structure_raw if isinstance(structure_raw, str) else str(structure_raw)
+                )
+                metadata = self._coalesce_metadata(metadata, llm_metadata)
+            except Exception as e:
+                self.logger.warning("Structure extraction failed (LangChain): %s", e)
+
+        if self.enable_llm_enrichment:
+            try:
+                metadata = self._merge_specialized_fields(metadata, cleaned)
+            except Exception as e:
+                self.logger.warning("Specialized merge failed: %s", e)
         metadata = self._fallback_metadata_from_text(metadata, cleaned)
 
-        try:
-            timeline_raw = self._timeline_chain.invoke({"document": text_sample})
-            timeline = parse_timeline_output(
-                timeline_raw if isinstance(timeline_raw, str) else str(timeline_raw)
-            )
-        except Exception as e:
-            raise RuntimeError(f"Timeline extraction failed (LangChain): {e}") from e
-        if not timeline:
-            timeline = self._fallback_timeline_from_text(cleaned)
+        timeline = self._fallback_timeline_from_text(cleaned)
+        if self.enable_llm_enrichment and len(timeline) < 1:
+            try:
+                timeline_raw = self._timeline_chain.invoke({"document": text_sample})
+                llm_timeline = parse_timeline_output(
+                    timeline_raw if isinstance(timeline_raw, str) else str(timeline_raw)
+                )
+                if llm_timeline:
+                    timeline = llm_timeline
+            except Exception as e:
+                self.logger.warning("Timeline extraction failed (LangChain): %s", e)
 
+        contradiction_warning = ""
         if self.enable_contradiction_detection:
             try:
                 # Keep contradiction checks bounded; full pairwise NLI is expensive on CPU.
                 contradictions = self.contradiction_agent.detect(cleaned, max_pairs=24)
             except Exception as e:
-                raise RuntimeError(f"Contradiction detection failed: {e}") from e
+                self.logger.warning("Contradiction detection unavailable: %s", e)
+                contradictions = []
+                contradiction_warning = "contradiction_detection_unavailable"
         else:
             contradictions = []
 
@@ -265,22 +443,34 @@ class LangChainOrchestrator:
             build_provenance("Qwen/Qwen2-7B-Instruct", "court_reasoning"),
         ]
         self._last_warnings = validate_extraction(metadata)
+        if contradiction_warning:
+            self._last_warnings.append(contradiction_warning)
         for warning in self._last_warnings:
             self.logger.warning("Extraction warning: %s", warning)
 
         self._last_metadata = metadata
         self._last_timeline = timeline
         self._last_contradictions = contradictions
+        self._last_reviewed_output = self.final_review_agent.review(
+            metadata=metadata,
+            timeline=timeline,
+            contradictions=contradictions,
+            warnings=self._last_warnings,
+        )
 
-        return {
+        result = {
             "cleaned_text": cleaned,
             "metadata": metadata,
             "timeline": timeline,
             "contradictions": contradictions,
+            "final_review": self._last_reviewed_output,
             "chunks_indexed": len(chunks),
             "provenance": self._last_provenance,
             "warnings": self._last_warnings,
+            "processing_ms": int((time.perf_counter() - started) * 1000),
         }
+        self._analysis_cache[cache_key] = dict(result)
+        return result
 
     def ask(self, question: str) -> str:
         try:
@@ -306,6 +496,9 @@ class LangChainOrchestrator:
 
     def get_last_warnings(self) -> List[str]:
         return self._last_warnings
+
+    def get_last_reviewed_output(self) -> Dict[str, Any]:
+        return self._last_reviewed_output
 
     def save_index(self, path: Optional[Path] = None) -> None:
         self.vector_store.save(path)

@@ -1,7 +1,7 @@
 """
 Research Agent - RAG-based question answering over legal documents.
 
-Uses Llama-3.1-8B-Instruct with retrieved chunks from FAISS for context.
+Uses Qwen2-1.5B-Instruct with retrieved chunks from FAISS for context.
 """
 
 import sys
@@ -17,7 +17,7 @@ class ResearchAgent:
     """
     Answers user questions about the document using RAG:
     retrieve relevant chunks from vector store, then generate answer with LLM.
-    Model: meta-llama/Llama-3.1-8B-Instruct (requires HuggingFace access)
+    Model: Qwen/Qwen2-1.5B-Instruct
     """
 
     RESEARCH_MODEL_ID = "Qwen/Qwen2-1.5B-Instruct"
@@ -32,7 +32,7 @@ class ResearchAgent:
         """
         Args:
             vector_store: FAISS-backed store of document chunks.
-            llm_loader: Optional LLM for generation (default: Llama-3.1-8B).
+            llm_loader: Optional LLM for generation (default: Qwen2-1.5B).
             top_k: Number of chunks to retrieve per query.
             max_context_chars: Max characters of context to pass to LLM.
         """
@@ -58,10 +58,14 @@ class ResearchAgent:
         parts = []
         total = 0
         for text, _score in results:
-            if total + len(text) > self.max_context_chars:
+            remaining = self.max_context_chars - total
+            if remaining <= 0:
                 break
-            parts.append(text)
-            total += len(text)
+            snippet = text[:remaining]
+            if not snippet.strip():
+                continue
+            parts.append(snippet)
+            total += len(snippet)
         return "\n\n---\n\n".join(parts)
 
     def ask(self, question: str) -> str:
@@ -74,6 +78,9 @@ class ResearchAgent:
         Returns:
             Generated answer string.
         """
+        question = (question or "").strip()
+        if not question:
+            return "Please enter a non-empty question."
         context = self._build_context(question)
         if not context:
             return "No document has been indexed yet. Please upload and analyze a judgment first."

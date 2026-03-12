@@ -116,5 +116,768 @@
         "raw_text": "Section 10 said Act"
       }
     ]
+  },
+  {
+    "case_name": "A v. B",
+    "court": "IN THE HIGH COURT OF KERALA",
+    "judge": "",
+    "petitioner": "A",
+    "respondent": "B",
+    "main_issue": "B The issue for consideration is whether conviction can stand.",
+    "petitioner_arguments": [
+      "Learned counsel for the petitioner submitted that evidence is unreliable."
+    ],
+    "respondent_arguments": [
+      "The respondent submitted that the recovery was valid."
+    ],
+    "sections_of_law": [
+      "Section 420 IPC is discussed."
+    ],
+    "precedents": [],
+    "court_reasoning": [
+      "In view of the materials, this Court finds the prosecution failed."
+    ],
+    "final_decision": "By order dated 12/01/2020, the appeal is allowed and the accused is acquitted.",
+    "outcome_normalized": "acquittal",
+    "document_id": "quick",
+    "sections_normalized": [
+      {
+        "act": "IPC",
+        "section": "420",
+        "raw_text": "Section 420 IPC is discussed."
+      }
+    ]
+  },
+  {
+    "case_name": "A v. B",
+    "court": "IN THE HIGH COURT OF KERALA",
+    "judge": "",
+    "petitioner": "A",
+    "respondent": "B",
+    "main_issue": "B The issue for consideration is whether conviction can stand.",
+    "petitioner_arguments": [
+      "Learned counsel for the petitioner submitted that evidence is unreliable."
+    ],
+    "respondent_arguments": [
+      "The respondent submitted that the recovery was valid."
+    ],
+    "sections_of_law": [
+      "Section 420 IPC is discussed."
+    ],
+    "precedents": [],
+    "court_reasoning": [
+      "In view of the materials, this Court finds the prosecution failed."
+    ],
+    "final_decision": "By order dated 12/01/2020, the appeal is allowed and the accused is acquitted.",
+    "outcome_normalized": "acquittal",
+    "document_id": "quick2",
+    "sections_normalized": [
+      {
+        "act": "IPC",
+        "section": "420",
+        "raw_text": "Section 420 IPC is discussed."
+      }
+    ]
+  },
+  {
+    "case_name": "",
+    "court": "IN THE HIGH COURT OF KERALA",
+    "judge": "",
+    "petitioner": "",
+    "respondent": "",
+    "main_issue": "B The issue for consideration is whether conviction can stand.",
+    "petitioner_arguments": [
+      "Learned counsel for the petitioner submitted that evidence is unreliable."
+    ],
+    "respondent_arguments": [
+      "The respondent submitted that the recovery was valid."
+    ],
+    "sections_of_law": [
+      "Section 420 IPC is discussed."
+    ],
+    "precedents": [],
+    "court_reasoning": [
+      "In view of the materials, this Court finds the prosecution failed."
+    ],
+    "final_decision": "By order dated 12/01/2020, the appeal is allowed and the accused is acquitted.",
+    "outcome_normalized": "acquittal",
+    "document_id": "quick3",
+    "sections_normalized": [
+      {
+        "act": "IPC",
+        "section": "420",
+        "raw_text": "Section 420 IPC is discussed."
+      }
+    ]
+  },
+  {
+    "case_name": "A v. B",
+    "court": "IN THE HIGH COURT OF KERALA",
+    "judge": "",
+    "petitioner": "",
+    "respondent": "",
+    "main_issue": "",
+    "petitioner_arguments": [],
+    "respondent_arguments": [],
+    "sections_of_law": [],
+    "precedents": [],
+    "court_reasoning": [],
+    "final_decision": "By order dated 12/01/2020, the appeal is allowed.",
+    "outcome_normalized": "allowed",
+    "document_id": "quick4",
+    "sections_normalized": []
+  },
+  {
+    "case_name": "Asianet Satellite Communications Ltd vs The Assistant",
+    "court": "IN THE HIGH COURT OF KERALA AT ERNAKULAM",
+    "judge": "THE HONOURABLE MR.JUSTICE MOHAMMED NIAS C.P.",
+    "petitioner": "",
+    "respondent": "",
+    "main_issue": "40017/2024, 35892/2019, 29878/2018, 25574/2020, 25201/2021, 29079/2022, 30646/2024 and 38386/2024, the writ petitioners challenge the demand notices issued by the Kerala State Electricity Board Limited and the Thrissur Municipal Corporation, the latter bein",
+    "petitioner_arguments": [
+      "The learned Senior counsel for the petitioner Sri Ramesh Babu along with Sri.",
+      "N.Krishnaprasad for the petitioner in WPC No."
+    ],
+    "respondent_arguments": [],
+    "sections_of_law": [
+      "Section 61 Telecommunications Act",
+      "Section 61 Telecommunications",
+      "Section 164 Act read with Part III of the Telegraph",
+      "Section 51 Electricity Act for",
+      "Section 174 Electricity Act gives the Act an",
+      "Section s",
+      "Section 3 Telecommunication Act",
+      "Section 10 said Act"
+    ],
+    "precedents": [
+      "Asianet Satellite Communications Ltd vs The Assistant",
+      "Asianet Satellite Communications Ltd vs The Assistant Secretary on 5 February, 2026",
+      "Limited and Anr. v. The Rs.29,68,05,828",
+      "Limited v. The Assistant",
+      "Limited v. The Assistant Rs.31,56,429",
+      "Communications 5 demanding an 2021-2022 Limited v. The Assistant amount of",
+      "Asianet Satellite 16.07.2022 issued by Communications the Thrissur Limited v. The Assistant",
+      "Limited v. The Assistant rate of Rs.595",
+      "Limited v. The Assistant Rs.48,39,073",
+      "Permissible Rates according to the petitioner v. Demanded Rates fixed by KSEB in WPC No"
+    ],
+    "court_reasoning": [
+      "They therefore seek quashing of the impugned demand notices, a declaration of the applicable lawful rates, and a direction to execute renewal agreements at the rates fixed under the GOs/BOs and, after 21.10.2021, at the rates mandated by the Right of Way Ru",
+      "Therefore, the application of pole rental rates applicable to mobile or wireless telecommunication infrastructure to the petitioners' wired networks is arbitrary and legally unsustainable.",
+      "The writ petition may therefore be dismissed with costs, allowing KSEBL to recover all amounts lawfully due under the applicable Board Orders and Government directives.",
+      "Cases 75 2026:KER:9220 Thrissur Corporation is the only Local Authority in the State which is also a distribution licensee and is therefore entitled to levy miscellaneous charges distinct from KSEB.",
+      "The respondents submit that the petitioner paid these amounts under protest without challenging the resolutions and is therefore estopped from disputing the subsequent revisions.",
+      "It is submitted that the petitioner holds a valid authorisation under Section 3 of the Telecommunication Act, and therefore qualifies as a \"facility provider\" within the meaning of Section 10 of the said Act, entitled to seek and obtain RoW permissions stric",
+      "Cases 78 2026:KER:9220 establishing or maintaining telegraph lines; therefore, the electricity poles of the respondents are part of telegraph infrastructure governed by Central Rules, and cannot be subjected to arbitrary or unilateral pole-rental fixation.",
+      "It is further contended that till the period up to 31.03.2021, the petitioner was paying the pole rent in terms of the agreement entered into between them in view of the settlement WP(C) NO."
+    ],
+    "final_decision": "",
+    "outcome_normalized": "unknown",
+    "document_id": "tmpt9r_t_p8",
+    "sections_normalized": [
+      {
+        "act": "",
+        "section": "61",
+        "raw_text": "Section 61 Telecommunications Act"
+      },
+      {
+        "act": "",
+        "section": "61",
+        "raw_text": "Section 61 Telecommunications"
+      },
+      {
+        "act": "",
+        "section": "164",
+        "raw_text": "Section 164 Act read with Part III of the Telegraph"
+      },
+      {
+        "act": "",
+        "section": "51",
+        "raw_text": "Section 51 Electricity Act for"
+      },
+      {
+        "act": "",
+        "section": "174",
+        "raw_text": "Section 174 Electricity Act gives the Act an"
+      },
+      {
+        "act": "",
+        "section": "s",
+        "raw_text": "Section s"
+      },
+      {
+        "act": "",
+        "section": "3",
+        "raw_text": "Section 3 Telecommunication Act"
+      },
+      {
+        "act": "",
+        "section": "10",
+        "raw_text": "Section 10 said Act"
+      }
+    ]
+  },
+  {
+    "case_name": "Asianet Satellite Communications Ltd vs The Assistant",
+    "court": "IN THE HIGH COURT OF KERALA AT ERNAKULAM",
+    "judge": "THE HONOURABLE MR.JUSTICE MOHAMMED NIAS C.P.",
+    "petitioner": "Asianet Satellite Communications Ltd",
+    "respondent": "The State of Kerala and The Kerala State Electricity Board Ltd",
+    "main_issue": "40017/2024, 35892/2019, 29878/2018, 25574/2020, 25201/2021, 29079/2022, 30646/2024 and 38386/2024, the writ petitioners challenge the demand notices issued by the Kerala State Electricity Board Limited and the Thrissur Municipal Corporation, the latter bein",
+    "petitioner_arguments": [
+      "The learned Senior counsel for the petitioner Sri Ramesh Babu along with Sri.",
+      "N.Krishnaprasad for the petitioner in WPC No."
+    ],
+    "respondent_arguments": [],
+    "sections_of_law": [
+      "Section 61 Telecommunications Act",
+      "Section 61 Telecommunications",
+      "Section 164 Act read with Part III of the Telegraph",
+      "Section 51 Electricity Act for",
+      "Section 174 Electricity Act gives the Act an",
+      "Section s",
+      "Section 3 Telecommunication Act",
+      "Section 10 said Act"
+    ],
+    "precedents": [
+      "Asianet Satellite Communications Ltd vs The Assistant",
+      "Asianet Satellite Communications Ltd vs The Assistant Secretary on 5 February, 2026",
+      "Limited and Anr. v. The Rs.29,68,05,828",
+      "Limited v. The Assistant",
+      "Limited v. The Assistant Rs.31,56,429",
+      "Communications 5 demanding an 2021-2022 Limited v. The Assistant amount of",
+      "Asianet Satellite 16.07.2022 issued by Communications the Thrissur Limited v. The Assistant",
+      "Limited v. The Assistant rate of Rs.595",
+      "Limited v. The Assistant Rs.48,39,073",
+      "Permissible Rates according to the petitioner v. Demanded Rates fixed by KSEB in WPC No"
+    ],
+    "court_reasoning": [
+      "They therefore seek quashing of the impugned demand notices, a declaration of the applicable lawful rates, and a direction to execute renewal agreements at the rates fixed under the GOs/BOs and, after 21.10.2021, at the rates mandated by the Right of Way Ru",
+      "Therefore, the application of pole rental rates applicable to mobile or wireless telecommunication infrastructure to the petitioners' wired networks is arbitrary and legally unsustainable.",
+      "The writ petition may therefore be dismissed with costs, allowing KSEBL to recover all amounts lawfully due under the applicable Board Orders and Government directives.",
+      "Cases 75 2026:KER:9220 Thrissur Corporation is the only Local Authority in the State which is also a distribution licensee and is therefore entitled to levy miscellaneous charges distinct from KSEB.",
+      "The respondents submit that the petitioner paid these amounts under protest without challenging the resolutions and is therefore estopped from disputing the subsequent revisions.",
+      "It is submitted that the petitioner holds a valid authorisation under Section 3 of the Telecommunication Act, and therefore qualifies as a \"facility provider\" within the meaning of Section 10 of the said Act, entitled to seek and obtain RoW permissions stric",
+      "Cases 78 2026:KER:9220 establishing or maintaining telegraph lines; therefore, the electricity poles of the respondents are part of telegraph infrastructure governed by Central Rules, and cannot be subjected to arbitrary or unilateral pole-rental fixation.",
+      "It is further contended that till the period up to 31.03.2021, the petitioner was paying the pole rent in terms of the agreement entered into between them in view of the settlement WP(C) NO."
+    ],
+    "final_decision": "The court has awarded damages to the petitioners.",
+    "outcome_normalized": "unknown",
+    "document_id": "tmp90elasuh",
+    "sections_normalized": [
+      {
+        "act": "",
+        "section": "61",
+        "raw_text": "Section 61 Telecommunications Act"
+      },
+      {
+        "act": "",
+        "section": "61",
+        "raw_text": "Section 61 Telecommunications"
+      },
+      {
+        "act": "",
+        "section": "164",
+        "raw_text": "Section 164 Act read with Part III of the Telegraph"
+      },
+      {
+        "act": "",
+        "section": "51",
+        "raw_text": "Section 51 Electricity Act for"
+      },
+      {
+        "act": "",
+        "section": "174",
+        "raw_text": "Section 174 Electricity Act gives the Act an"
+      },
+      {
+        "act": "",
+        "section": "s",
+        "raw_text": "Section s"
+      },
+      {
+        "act": "",
+        "section": "3",
+        "raw_text": "Section 3 Telecommunication Act"
+      },
+      {
+        "act": "",
+        "section": "10",
+        "raw_text": "Section 10 said Act"
+      }
+    ]
+  },
+  {
+    "case_name": "A v. B",
+    "court": "IN THE HIGH COURT OF KERALA",
+    "judge": "",
+    "petitioner": "",
+    "respondent": "",
+    "main_issue": "",
+    "petitioner_arguments": [],
+    "respondent_arguments": [],
+    "sections_of_law": [],
+    "precedents": [],
+    "court_reasoning": [],
+    "final_decision": "Judgment dated 12/01/2020. Petition dismissed.",
+    "outcome_normalized": "dismissed",
+    "document_id": "latest",
+    "sections_normalized": []
+  },
+  {
+    "case_name": "The Reserve Bank Employees ... vs The Principal Chief",
+    "court": "ORISSA HIGH COURT : CUTTACK",
+    "judge": "HONOURABLE CHIEF JUSTICE MR. HARISH TANDON AND HONOURABLE",
+    "petitioner": "",
+    "respondent": "",
+    "main_issue": "on 9 January, 2026 Indian Kanoon - http://indiankanoon.org/doc/181780484/ 1 to condone the delay in furnishing return of income pertaining to the Assessment Years 2018-19 to 2022-23, exercising power under Section 119(2)(b) of the Income Tax Act, 1961, the",
+    "petitioner_arguments": [
+      "Opposite parties Counsel appeared for the parties: For the Petitioner : Mr.",
+      "Heard Sri Rudra Prasad Kar, learned Senior Advocate assisted by Sri Himansu Bhusan Jena, learned Advocate for the petitioner and Sri Subash Chandra Mohanty, learned Senior Standing Counsel for the opposite parties.",
+      "Diligently considered the arguments of the Senior Counsel for the petitioner and reply of learned Senior Standing Counsel appearing for opposite parties.",
+      "The contention of the learned counsel for the respondents that the Departmental auditors, in fact, had started the audit in the year 2000 and it was for the petitioner to get the audit expedited, cannot be accepted."
+    ],
+    "respondent_arguments": [
+      "The contention of the learned counsel for the respondents that the Departmental auditors, in fact, had started the audit in the year 2000 and it was for the petitioner to get the audit expedited, cannot be accepted."
+    ],
+    "sections_of_law": [
+      "Section 119 (",
+      "Section 62 OCS Act",
+      "Section 62 Odisha",
+      "Section 139 (",
+      "Section shall",
+      "Section 65 .",
+      "Section 139 IT Act.",
+      "Section 119 ("
+    ],
+    "precedents": [
+      "The Reserve Bank Employees ... vs The Principal Chief",
+      "The Reserve Bank Employees ... vs The Principal Chief Commissioner Of ... on 9 January, 2026"
+    ],
+    "court_reasoning": [
+      "(6) If the Auditor-General has reason to believe that the continuance in office of any officer or office-bearer of a Society during audit of its accounts will be detrimental either to the ascertainment of facts relevant to the audit, or to the furnishing of",
+      "It is, therefore, arduously argued by the learned Senior Counsel that the Order dated 13.06.2024 does require interdiction by setting it aside, being tainted with arbitrary exercise of power by the PCCIT.",
+      "Since the Departmental Auditors were not available due to paucity, in view of concession being accorded in Letter dated 07.08.2019 of the Directorate of Cooperative Audit, Odisha, Bhubaneswar to engage Chartered Accountant from the panel approved/ maintaine",
+      "This Court finds force in the submission of Sri Rudra Prasad Kar, learned Senior Advocate that when the Central Government admits of delay in conduct of audit of cooperative societies with respect to the Assessment Years 2018-19 to 2022-23 in terms of the OC",
+      "In order to mitigate hardship of the cooperative society in claiming benefit under Section 80P of IT Act on account of delay in appointment of auditors in view of Section 62 of the OCS Act, the Circular dated 03.08.2023 of Ministry of Cooperation in tune wit",
+      "The expression \"genuine\" has received a liberal meaning in view of the law laid down by the apex court referred to hereinabove and while considering this aspect, the authorities are expected to bear in mind that ordinarily the applicant, applying for condon",
+      "The expression \"genuine\" has received a liberal meaning in view of the law laid down by the apex court and while considering this aspect, the authorities are expected to bear in mind that ordinarily the applicant, applying for condonation of delay, does not",
+      "This circumstance, on the contrary adds force to the explanation furnished by the petitioner that the delay in filing of returns was only on account of misplacement or the TDS certificates, which the petitioner was advised, has to be necessarily filed alon"
+    ],
+    "final_decision": "disposal of the writ petition, pending Interlocutory Application(s), if any, shall stand disposed of,",
+    "outcome_normalized": "disposed",
+    "document_id": "tmp2nklvqyh",
+    "sections_normalized": [
+      {
+        "act": "",
+        "section": "119",
+        "raw_text": "Section 119 ("
+      },
+      {
+        "act": "",
+        "section": "62",
+        "raw_text": "Section 62 OCS Act"
+      },
+      {
+        "act": "",
+        "section": "62",
+        "raw_text": "Section 62 Odisha"
+      },
+      {
+        "act": "",
+        "section": "139",
+        "raw_text": "Section 139 ("
+      },
+      {
+        "act": "",
+        "section": "shall",
+        "raw_text": "Section shall"
+      },
+      {
+        "act": "",
+        "section": "65",
+        "raw_text": "Section 65 ."
+      },
+      {
+        "act": "",
+        "section": "139",
+        "raw_text": "Section 139 IT Act."
+      },
+      {
+        "act": "",
+        "section": "119",
+        "raw_text": "Section 119 ("
+      }
+    ]
+  },
+  {
+    "case_name": "Tata Steel Limited vs Ministry Of Corporate Affairs, Through ...",
+    "court": "* IN THE HIGH COURT OF DELHI AT NEW DELHI",
+    "judge": "CORAM:",
+    "petitioner": "",
+    "respondent": "",
+    "main_issue": "To issue an appropriate writ, order or direction in the nature of Mandamus to the First Respondent, i.e.",
+    "petitioner_arguments": [
+      "Subsequently, a List of Creditors for the Petitioner was prepared, and in the said list, Respondent No.",
+      "At the outset, learned Senior Counsel for the Petitioner submitted that the averments made by Respondent No.",
+      "In the present case, it is pointed out by the learned Senior Counsel for the Petitioner that as per order dated 30.05.2019 passed by the learned Adjudicating Authority in CA No."
+    ],
+    "respondent_arguments": [
+      "Counsel for the Respondent submitted that the determination of the RP is immaterial, and the Claimant is indeed a Creditor, irrespective of what the RP may say.",
+      "Subsequent thereto, the Respondent submitted its claim before the Resolution Professional, which was partly admitted.",
+      "Learned senior counsel for the respondent distinguished the case of Ghanshyam Mishra (supra) by contending that the said judgment was rendered in a distinguishable factual situation where the creditor had failed to lodge its claim upon public announcement b",
+      "High Court had noticed this fact and has rightly observed that since the respondent does not fall in the category of operational creditors whose claims were rendered nil, there was no occasion for the respondent to challenge the resolution plan.",
+      "Learned counsel further submits that since the claim of the respondent was pending before the Facilitation Council and in view of the information memorandum issued by the interim resolution professional, there was no need for the respondent to have challeng"
+    ],
+    "sections_of_law": [
+      "Section 32 (",
+      "Section 16 Arbitration and Conciliation Act",
+      "Section 7 Insolvency and Bankruptcy Code",
+      "Section 13 of IBC",
+      "Section 30 (",
+      "Section 32 (",
+      "Section 31 IBC",
+      "Section 31"
+    ],
+    "precedents": [
+      "Tata Steel Limited vs Ministry Of Corporate Affairs, Through",
+      "Shefali Munde, Advocates. versus MINISTRY OF CORPORATE AFFAIRS",
+      "Tata Steel Limited vs Ministry Of Corporate Affairs, Through ... on 9 January, 2026",
+      "Authorized Signatory v. Edelweiss Asset Reconstruction Company Limited Through the Director",
+      "K. Sashidhar v. Indian Overseas Bank 2 , and submitted that the CoC may accept or reject a",
+      "Supreme Court in Deep Industries Limited v. Oil and Natural Gas Corporation",
+      "SBP & Co. v. Patel Engg. Ltd., (2005) 8 SCC",
+      "Punjab Agro Industries Corpn. Ltd. v. Kewal Singh Dhillon",
+      "Punjab Agro Industries Corpn. Ltd. v. Kewal Singh Dhillon, (2008) 10 SCC 128",
+      "Co. v. Patel Engg. Ltd., (2005) 8 SCC 618"
+    ],
+    "court_reasoning": [
+      "In view of completion of the Insolvency proceedings of the Petitioner and upon lifting of the moratorium, Respondent No.",
+      "2019 amendment to Section 31 of the I&B Code is clarificatory and declaratory in nature and therefore will be effective from the date on which I&B Code has come into effect.",
+      "2, which were under dispute in the Arbitral Proceedings, the same fell under the definition of \"claim\" as defined under Section 3(6) of the IBC, and therefore, the alleged claims of Respondent No.",
+      "It was further contended, without prejudice, that any grievance or comments on the working RP were to be made only before the Adjudicating Authority/Appellate Forum, as provided under the IBC, and hence the learned Arbitral Tribunal lacked jurisdiction in t",
+      "The learned Arbitral Tribunal, therefore, was precluded from questioning the commercial wisdom of the CoC and the approval of the treatment given to the claims of Respondent No.",
+      "Any such Liability shall be deemed to be owed and due as of the Insolvency Commencement Date, the Liquidation Value of which is NIL and therefore no amount is payable in relation thereto.",
+      "In respect of Sub Judice Claims from Operational Creditors (including without limitation, claims made by ISGEC Heavy Engineering Limited), each such Sub Judice Claim is a \"claim\" and \"debt\", each as defined under the IBC, and would consequently qualify as \"",
+      "The Petitioner was acquired by TSL, keeping in view of the financial viability of its assets."
+    ],
+    "final_decision": "90. Pending application(s), if any, also stand disposed of.",
+    "outcome_normalized": "disposed",
+    "document_id": "tmps8ijs_df",
+    "sections_normalized": [
+      {
+        "act": "",
+        "section": "32",
+        "raw_text": "Section 32 ("
+      },
+      {
+        "act": "",
+        "section": "16",
+        "raw_text": "Section 16 Arbitration and Conciliation Act"
+      },
+      {
+        "act": "",
+        "section": "7",
+        "raw_text": "Section 7 Insolvency and Bankruptcy Code"
+      },
+      {
+        "act": "",
+        "section": "13",
+        "raw_text": "Section 13 of IBC"
+      },
+      {
+        "act": "",
+        "section": "30",
+        "raw_text": "Section 30 ("
+      },
+      {
+        "act": "",
+        "section": "32",
+        "raw_text": "Section 32 ("
+      },
+      {
+        "act": "",
+        "section": "31",
+        "raw_text": "Section 31 IBC"
+      },
+      {
+        "act": "",
+        "section": "31",
+        "raw_text": "Section 31"
+      }
+    ]
+  },
+  {
+    "case_name": "A v. B",
+    "court": "IN THE HIGH COURT OF XYZ",
+    "judge": "",
+    "petitioner": "",
+    "respondent": "",
+    "main_issue": "",
+    "petitioner_arguments": [
+      "B The petitioner submitted no notice was served."
+    ],
+    "respondent_arguments": [
+      "The respondent submitted notice was served on 12/03/2024."
+    ],
+    "sections_of_law": [
+      "Section 420 IPC."
+    ],
+    "precedents": [],
+    "court_reasoning": [],
+    "final_decision": "By order dated 01/04/2024, appeal dismissed under Section 420 IPC.",
+    "outcome_normalized": "dismissed",
+    "document_id": "audit",
+    "sections_normalized": [
+      {
+        "act": "IPC",
+        "section": "420",
+        "raw_text": "Section 420 IPC."
+      }
+    ]
+  },
+  {
+    "case_name": "Tata Steel Limited vs Ministry Of Corporate Affairs, Through ...",
+    "court": "* IN THE HIGH COURT OF DELHI AT NEW DELHI",
+    "judge": "CORAM:",
+    "petitioner": "",
+    "respondent": "",
+    "main_issue": "To issue an appropriate writ, order or direction in the nature of Mandamus to the First Respondent, i.e.",
+    "petitioner_arguments": [
+      "Subsequently, a List of Creditors for the Petitioner was prepared, and in the said list, Respondent No.",
+      "At the outset, learned Senior Counsel for the Petitioner submitted that the averments made by Respondent No.",
+      "In the present case, it is pointed out by the learned Senior Counsel for the Petitioner that as per order dated 30.05.2019 passed by the learned Adjudicating Authority in CA No."
+    ],
+    "respondent_arguments": [
+      "Counsel for the Respondent submitted that the determination of the RP is immaterial, and the Claimant is indeed a Creditor, irrespective of what the RP may say.",
+      "Subsequent thereto, the Respondent submitted its claim before the Resolution Professional, which was partly admitted.",
+      "Learned senior counsel for the respondent distinguished the case of Ghanshyam Mishra (supra) by contending that the said judgment was rendered in a distinguishable factual situation where the creditor had failed to lodge its claim upon public announcement b",
+      "High Court had noticed this fact and has rightly observed that since the respondent does not fall in the category of operational creditors whose claims were rendered nil, there was no occasion for the respondent to challenge the resolution plan.",
+      "Learned counsel further submits that since the claim of the respondent was pending before the Facilitation Council and in view of the information memorandum issued by the interim resolution professional, there was no need for the respondent to have challeng"
+    ],
+    "sections_of_law": [
+      "Section 32 (",
+      "Section 16 Arbitration and Conciliation Act",
+      "Section 7 Insolvency and Bankruptcy Code",
+      "Section 13 of IBC",
+      "Section 30 (",
+      "Section 32 (",
+      "Section 31 IBC",
+      "Section 31"
+    ],
+    "precedents": [
+      "Tata Steel Limited vs Ministry Of Corporate Affairs, Through",
+      "Shefali Munde, Advocates. versus MINISTRY OF CORPORATE AFFAIRS",
+      "Tata Steel Limited vs Ministry Of Corporate Affairs, Through ... on 9 January, 2026",
+      "Authorized Signatory v. Edelweiss Asset Reconstruction Company Limited Through the Director",
+      "K. Sashidhar v. Indian Overseas Bank 2 , and submitted that the CoC may accept or reject a",
+      "Supreme Court in Deep Industries Limited v. Oil and Natural Gas Corporation",
+      "SBP & Co. v. Patel Engg. Ltd., (2005) 8 SCC",
+      "Punjab Agro Industries Corpn. Ltd. v. Kewal Singh Dhillon",
+      "Punjab Agro Industries Corpn. Ltd. v. Kewal Singh Dhillon, (2008) 10 SCC 128",
+      "Co. v. Patel Engg. Ltd., (2005) 8 SCC 618"
+    ],
+    "court_reasoning": [
+      "In view of completion of the Insolvency proceedings of the Petitioner and upon lifting of the moratorium, Respondent No.",
+      "2019 amendment to Section 31 of the I&B Code is clarificatory and declaratory in nature and therefore will be effective from the date on which I&B Code has come into effect.",
+      "2, which were under dispute in the Arbitral Proceedings, the same fell under the definition of \"claim\" as defined under Section 3(6) of the IBC, and therefore, the alleged claims of Respondent No.",
+      "It was further contended, without prejudice, that any grievance or comments on the working RP were to be made only before the Adjudicating Authority/Appellate Forum, as provided under the IBC, and hence the learned Arbitral Tribunal lacked jurisdiction in t",
+      "The learned Arbitral Tribunal, therefore, was precluded from questioning the commercial wisdom of the CoC and the approval of the treatment given to the claims of Respondent No.",
+      "Any such Liability shall be deemed to be owed and due as of the Insolvency Commencement Date, the Liquidation Value of which is NIL and therefore no amount is payable in relation thereto.",
+      "In respect of Sub Judice Claims from Operational Creditors (including without limitation, claims made by ISGEC Heavy Engineering Limited), each such Sub Judice Claim is a \"claim\" and \"debt\", each as defined under the IBC, and would consequently qualify as \"",
+      "The Petitioner was acquired by TSL, keeping in view of the financial viability of its assets."
+    ],
+    "final_decision": "90. Pending application(s), if any, also stand disposed of.",
+    "outcome_normalized": "disposed",
+    "document_id": "tmpkxvsp204",
+    "sections_normalized": [
+      {
+        "act": "",
+        "section": "32",
+        "raw_text": "Section 32 ("
+      },
+      {
+        "act": "",
+        "section": "16",
+        "raw_text": "Section 16 Arbitration and Conciliation Act"
+      },
+      {
+        "act": "",
+        "section": "7",
+        "raw_text": "Section 7 Insolvency and Bankruptcy Code"
+      },
+      {
+        "act": "",
+        "section": "13",
+        "raw_text": "Section 13 of IBC"
+      },
+      {
+        "act": "",
+        "section": "30",
+        "raw_text": "Section 30 ("
+      },
+      {
+        "act": "",
+        "section": "32",
+        "raw_text": "Section 32 ("
+      },
+      {
+        "act": "",
+        "section": "31",
+        "raw_text": "Section 31 IBC"
+      },
+      {
+        "act": "",
+        "section": "31",
+        "raw_text": "Section 31"
+      }
+    ]
+  },
+  {
+    "case_name": "A v. B",
+    "court": "IN THE HIGH COURT OF XYZ",
+    "judge": "",
+    "petitioner": "",
+    "respondent": "",
+    "main_issue": "B Issue is whether notice was served.",
+    "petitioner_arguments": [],
+    "respondent_arguments": [],
+    "sections_of_law": [
+      "Section 420 IPC."
+    ],
+    "precedents": [],
+    "court_reasoning": [],
+    "final_decision": "By order dated 01/04/2024, appeal dismissed under Section 420 IPC.",
+    "outcome_normalized": "dismissed",
+    "document_id": "reviewtest",
+    "sections_normalized": [
+      {
+        "act": "IPC",
+        "section": "420",
+        "raw_text": "Section 420 IPC."
+      }
+    ]
+  },
+  {
+    "case_name": "Tata Steel Limited vs Ministry Of Corporate Affairs, Through ...",
+    "court": "* IN THE HIGH COURT OF DELHI AT NEW DELHI",
+    "judge": "CORAM:",
+    "petitioner": "",
+    "respondent": "",
+    "main_issue": "To issue an appropriate writ, order or direction in the nature of Mandamus to the First Respondent, i.e.",
+    "petitioner_arguments": [
+      "Subsequently, a List of Creditors for the Petitioner was prepared, and in the said list, Respondent No.",
+      "At the outset, learned Senior Counsel for the Petitioner submitted that the averments made by Respondent No.",
+      "In the present case, it is pointed out by the learned Senior Counsel for the Petitioner that as per order dated 30.05.2019 passed by the learned Adjudicating Authority in CA No."
+    ],
+    "respondent_arguments": [
+      "Counsel for the Respondent submitted that the determination of the RP is immaterial, and the Claimant is indeed a Creditor, irrespective of what the RP may say.",
+      "Subsequent thereto, the Respondent submitted its claim before the Resolution Professional, which was partly admitted.",
+      "Learned senior counsel for the respondent distinguished the case of Ghanshyam Mishra (supra) by contending that the said judgment was rendered in a distinguishable factual situation where the creditor had failed to lodge its claim upon public announcement b",
+      "High Court had noticed this fact and has rightly observed that since the respondent does not fall in the category of operational creditors whose claims were rendered nil, there was no occasion for the respondent to challenge the resolution plan.",
+      "Learned counsel further submits that since the claim of the respondent was pending before the Facilitation Council and in view of the information memorandum issued by the interim resolution professional, there was no need for the respondent to have challeng"
+    ],
+    "sections_of_law": [
+      "Section 32 (",
+      "Section 16 Arbitration and Conciliation Act",
+      "Section 7 Insolvency and Bankruptcy Code",
+      "Section 13 of IBC",
+      "Section 30 (",
+      "Section 32 (",
+      "Section 31 IBC",
+      "Section 31"
+    ],
+    "precedents": [
+      "Tata Steel Limited vs Ministry Of Corporate Affairs, Through",
+      "Shefali Munde, Advocates. versus MINISTRY OF CORPORATE AFFAIRS",
+      "Tata Steel Limited vs Ministry Of Corporate Affairs, Through ... on 9 January, 2026",
+      "Authorized Signatory v. Edelweiss Asset Reconstruction Company Limited Through the Director",
+      "K. Sashidhar v. Indian Overseas Bank 2 , and submitted that the CoC may accept or reject a",
+      "Supreme Court in Deep Industries Limited v. Oil and Natural Gas Corporation",
+      "SBP & Co. v. Patel Engg. Ltd., (2005) 8 SCC",
+      "Punjab Agro Industries Corpn. Ltd. v. Kewal Singh Dhillon",
+      "Punjab Agro Industries Corpn. Ltd. v. Kewal Singh Dhillon, (2008) 10 SCC 128",
+      "Co. v. Patel Engg. Ltd., (2005) 8 SCC 618"
+    ],
+    "court_reasoning": [
+      "In view of completion of the Insolvency proceedings of the Petitioner and upon lifting of the moratorium, Respondent No.",
+      "2019 amendment to Section 31 of the I&B Code is clarificatory and declaratory in nature and therefore will be effective from the date on which I&B Code has come into effect.",
+      "2, which were under dispute in the Arbitral Proceedings, the same fell under the definition of \"claim\" as defined under Section 3(6) of the IBC, and therefore, the alleged claims of Respondent No.",
+      "It was further contended, without prejudice, that any grievance or comments on the working RP were to be made only before the Adjudicating Authority/Appellate Forum, as provided under the IBC, and hence the learned Arbitral Tribunal lacked jurisdiction in t",
+      "The learned Arbitral Tribunal, therefore, was precluded from questioning the commercial wisdom of the CoC and the approval of the treatment given to the claims of Respondent No.",
+      "Any such Liability shall be deemed to be owed and due as of the Insolvency Commencement Date, the Liquidation Value of which is NIL and therefore no amount is payable in relation thereto.",
+      "In respect of Sub Judice Claims from Operational Creditors (including without limitation, claims made by ISGEC Heavy Engineering Limited), each such Sub Judice Claim is a \"claim\" and \"debt\", each as defined under the IBC, and would consequently qualify as \"",
+      "The Petitioner was acquired by TSL, keeping in view of the financial viability of its assets."
+    ],
+    "final_decision": "90. Pending application(s), if any, also stand disposed of.",
+    "outcome_normalized": "disposed",
+    "document_id": "tmplhlubk6k",
+    "sections_normalized": [
+      {
+        "act": "",
+        "section": "32",
+        "raw_text": "Section 32 ("
+      },
+      {
+        "act": "",
+        "section": "16",
+        "raw_text": "Section 16 Arbitration and Conciliation Act"
+      },
+      {
+        "act": "",
+        "section": "7",
+        "raw_text": "Section 7 Insolvency and Bankruptcy Code"
+      },
+      {
+        "act": "",
+        "section": "13",
+        "raw_text": "Section 13 of IBC"
+      },
+      {
+        "act": "",
+        "section": "30",
+        "raw_text": "Section 30 ("
+      },
+      {
+        "act": "",
+        "section": "32",
+        "raw_text": "Section 32 ("
+      },
+      {
+        "act": "",
+        "section": "31",
+        "raw_text": "Section 31 IBC"
+      },
+      {
+        "act": "",
+        "section": "31",
+        "raw_text": "Section 31"
+      }
+    ]
+  },
+  {
+    "case_name": "A v. B",
+    "court": "IN THE HIGH COURT OF XYZ",
+    "judge": "",
+    "petitioner": "",
+    "respondent": "",
+    "main_issue": "",
+    "petitioner_arguments": [],
+    "respondent_arguments": [],
+    "sections_of_law": [
+      "Section 420 IPC."
+    ],
+    "precedents": [],
+    "court_reasoning": [],
+    "final_decision": "By order dated 01/04/2024, appeal dismissed under Section 420 IPC.",
+    "outcome_normalized": "dismissed",
+    "document_id": "finalmodel",
+    "sections_normalized": [
+      {
+        "act": "IPC",
+        "section": "420",
+        "raw_text": "Section 420 IPC."
+      }
+    ]
   }
 ]

@@ -1,7 +1,7 @@
 """
 Timeline Extraction Agent - Extracts chronological events from legal judgments.
 
-Uses Qwen2-7B-Instruct to produce a list of dated events in order.
+Uses heuristic date extraction with optional Qwen2-1.5B-Instruct enrichment.
 """
 
 import json
@@ -17,13 +17,52 @@ from models.llm_loader import LLMLoader
 class TimelineAgent:
     """
     Extracts a timeline of events from legal document text.
-    Model: Qwen/Qwen2-7B-Instruct (open-source)
+    Model: Qwen/Qwen2-1.5B-Instruct (optional) with heuristic fallback
     """
 
     TIMELINE_MODEL_ID = "Qwen/Qwen2-1.5B-Instruct"
 
-    def __init__(self, llm_loader: Optional[LLMLoader] = None):
+    @staticmethod
+    def _dedupe_events(events: List[Dict[str, Any]], max_items: int = 15) -> List[Dict[str, Any]]:
+        out: List[Dict[str, Any]] = []
+        seen: set[str] = set()
+        for item in events:
+            date = str(item.get("date", "")).strip()
+            event = str(item.get("event", "")).strip()
+            if not event:
+                continue
+            key = f"{date}|{event}".lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append({"date": date, "event": event})
+            if len(out) >= max_items:
+                break
+        return out
+
+    def _fallback_timeline(self, text: str, max_items: int = 12) -> List[Dict[str, Any]]:
+        date_pattern = re.compile(
+            r"\b(\d{1,2}[./-]\d{1,2}[./-]\d{2,4}|"
+            r"\d{4}[./-]\d{1,2}[./-]\d{1,2}|"
+            r"\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4})\b"
+        )
+        sentences = re.split(r"(?<=[.!?])\s+", text)
+        events: List[Dict[str, Any]] = []
+        for sentence in sentences:
+            s = sentence.strip()
+            if len(s) < 15:
+                continue
+            m = date_pattern.search(s)
+            if not m:
+                continue
+            events.append({"date": m.group(1), "event": s[:240]})
+            if len(events) >= max_items:
+                break
+        return self._dedupe_events(events, max_items=max_items)
+
+    def __init__(self, llm_loader: Optional[LLMLoader] = None, use_llm: bool = True):
         self._llm = llm_loader
+        self.use_llm = use_llm
 
     def _get_llm(self) -> LLMLoader:
         if self._llm is None:
@@ -53,7 +92,7 @@ class TimelineAgent:
                             })
                         elif isinstance(item, str):
                             events.append({"date": "", "event": item})
-                    return events
+                    return self._dedupe_events(events)
             except json.JSONDecodeError:
                 pass
         # Fallback: split by newlines and look for date-like + text
@@ -70,7 +109,7 @@ class TimelineAgent:
                     events.append({"date": date_match.group(1), "event": date_match.group(2)})
                 else:
                     events.append({"date": "", "event": rest})
-        return events
+        return self._dedupe_events(events)
 
     def extract(self, document_text: str) -> List[Dict[str, Any]]:
         """
@@ -82,6 +121,9 @@ class TimelineAgent:
         Returns:
             List of {"date": str, "event": str} in chronological order.
         """
+        fallback = self._fallback_timeline(document_text)
+        if not self.use_llm:
+            return fallback
         text_sample = document_text[:6000] if len(document_text) > 6000 else document_text
         prompt = (
             "From the following legal judgment text, extract a chronological timeline of events. "
@@ -92,6 +134,7 @@ class TimelineAgent:
         llm = self._get_llm()
         try:
             response = llm.generate(prompt, max_new_tokens=1024)
-            return self._parse_timeline_response(response)
+            parsed = self._parse_timeline_response(response)
+            return parsed if parsed else fallback
         except Exception:
-            return []
+            return fallback

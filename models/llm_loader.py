@@ -25,6 +25,7 @@ class LLMLoader:
         self,
         model_id: str,
         device_map: Optional[str] = "auto",
+        require_gpu: bool = False,
         load_in_8bit: bool = False,
         load_in_4bit: bool = False,
         max_new_tokens: int = 1024,
@@ -33,6 +34,7 @@ class LLMLoader:
     ):
         self.model_id = model_id
         self.device_map = device_map
+        self.require_gpu = require_gpu
         self.load_in_8bit = load_in_8bit
         self.load_in_4bit = load_in_4bit
         self.max_new_tokens = max_new_tokens
@@ -50,23 +52,37 @@ class LLMLoader:
         import torch
         from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, pipeline
 
+        has_cuda = torch.cuda.is_available()
+        if self.require_gpu and not has_cuda:
+            raise RuntimeError(
+                "GPU execution required, but CUDA is unavailable in this Python environment. "
+                "Install a CUDA-enabled PyTorch build and restart."
+            )
+
+        resolved_device_map = self.device_map
+        if resolved_device_map == "auto" and has_cuda:
+            resolved_device_map = "auto"
+        elif resolved_device_map == "auto" and not has_cuda:
+            resolved_device_map = "cpu"
+
         model_kwargs: dict[str, Any] = {
-            "device_map": self.device_map,
+            "device_map": resolved_device_map,
             "trust_remote_code": True,
+            "low_cpu_mem_usage": True,
         }
 
-        if self.load_in_4bit and torch.cuda.is_available():
+        if self.load_in_4bit and has_cuda:
             model_kwargs["quantization_config"] = BitsAndBytesConfig(
                 load_in_4bit=True,
                 bnb_4bit_compute_dtype=torch.float16,
                 bnb_4bit_quant_type="nf4",
             )
-        elif self.load_in_8bit:
+        elif self.load_in_8bit and has_cuda:
             model_kwargs["quantization_config"] = BitsAndBytesConfig(
                 load_in_8bit=True,
             )
         else:
-            model_kwargs["dtype"] = torch.float16 if torch.cuda.is_available() else torch.float32
+            model_kwargs["dtype"] = torch.float16 if has_cuda else torch.float32
 
         self._tokenizer = AutoTokenizer.from_pretrained(
             self.model_id,
@@ -78,6 +94,12 @@ class LLMLoader:
             **model_kwargs,
             token=HF_TOKEN,
         )
+        if self.require_gpu:
+            model_device = next(self._model.parameters()).device
+            if model_device.type != "cuda":
+                raise RuntimeError(
+                    f"GPU execution required, but model loaded on {model_device.type}."
+                )
 
         self._pipe = pipeline(
             "text-generation",
@@ -96,7 +118,10 @@ class LLMLoader:
         pipe = self.load()
         kwargs.setdefault("max_new_tokens", self.max_new_tokens)
         kwargs.setdefault("do_sample", self.do_sample)
-        kwargs.setdefault("temperature", self.temperature)
+        if kwargs.get("do_sample"):
+            kwargs.setdefault("temperature", self.temperature)
+        else:
+            kwargs.pop("temperature", None)
         if kwargs.get("max_new_tokens") is not None:
             # Avoid transformers warning when model generation_config has max_length default.
             kwargs.setdefault("max_length", None)

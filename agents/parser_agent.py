@@ -49,12 +49,24 @@ class ParserAgent:
             return ""
         # Normalize line endings
         text = text.replace("\r\n", "\n").replace("\r", "\n")
+        # Remove inline URLs (often citation/source noise in scraped judgments)
+        text = re.sub(r"https?://\S+", "", text)
         # Collapse multiple newlines to double newline (paragraph break)
         text = re.sub(r"\n{3,}", "\n\n", text)
         # Collapse multiple spaces to single
         text = re.sub(r"[ \t]+", " ", text)
-        # Strip per line and rejoin
-        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        # Strip per line, drop obvious page/header artifacts, and rejoin
+        lines = []
+        for raw_line in text.split("\n"):
+            line = raw_line.strip()
+            if not line:
+                continue
+            low = line.lower()
+            if re.match(r"^page\s+\d+\s+of\s+\d+$", low):
+                continue
+            if low.startswith("indiankanoon"):
+                continue
+            lines.append(line)
         return "\n\n".join(lines)
 
     def _llm_clean(self, text: str) -> str:

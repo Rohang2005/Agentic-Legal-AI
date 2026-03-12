@@ -36,6 +36,7 @@ class LegalPipelineOrchestrator:
         chunk_size: int = 512,
         chunk_overlap: int = 64,
         use_llm_parser: bool = False,
+        use_llm_extractors: bool = False,
         vector_store: Optional[LegalVectorStore] = None,
         index_path: Optional[Path] = None,
         case_store: Optional[CaseStore] = None,
@@ -50,8 +51,8 @@ class LegalPipelineOrchestrator:
         """
         self.chunker = TextChunker(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
         self.parser = ParserAgent(use_llm=use_llm_parser)
-        self.structure_agent = StructureAgent()
-        self.timeline_agent = TimelineAgent()
+        self.structure_agent = StructureAgent(use_llm=use_llm_extractors)
+        self.timeline_agent = TimelineAgent(use_llm=use_llm_extractors)
         self.contradiction_agent = ContradictionAgent()
         self.embedding_model = EmbeddingModel()
         self.vector_store = vector_store or LegalVectorStore(
@@ -111,7 +112,8 @@ class LegalPipelineOrchestrator:
         try:
             contradictions = self.contradiction_agent.detect(cleaned)
         except Exception as e:
-            raise RuntimeError(f"Contradiction detection failed: {e}") from e
+            self.logger.warning("Contradiction detection unavailable: %s", e)
+            contradictions = []
         try:
             self.vector_store.add_texts(chunks)
         except Exception as e:
@@ -120,9 +122,9 @@ class LegalPipelineOrchestrator:
         self.case_store.upsert_case(normalized_record)
 
         self._last_provenance = [
-            build_provenance("Qwen/Qwen2-7B-Instruct", "structure"),
-            build_provenance("Qwen/Qwen2-7B-Instruct", "timeline"),
-            build_provenance("microsoft/deberta-v3-large-mnli", "contradiction"),
+            build_provenance("Qwen/Qwen2-1.5B-Instruct", "structure"),
+            build_provenance("Qwen/Qwen2-1.5B-Instruct", "timeline"),
+            build_provenance("cross-encoder/nli-deberta-v3-base", "contradiction"),
         ]
         self._last_warnings = validate_extraction(metadata)
         for warning in self._last_warnings:

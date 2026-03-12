@@ -19,17 +19,34 @@ class EmbeddingModel:
     Wraps SentenceTransformer (BGE) for encoding legal text into vectors.
     """
 
-    DEFAULT_MODEL_ID = "BAAI/bge-large-en-v1.5"
+    DEFAULT_MODEL_ID = "BAAI/bge-small-en-v1.5"
 
-    def __init__(self, model_id: str = DEFAULT_MODEL_ID, device: Optional[str] = None):
+    def __init__(
+        self,
+        model_id: str = DEFAULT_MODEL_ID,
+        device: Optional[str] = None,
+        require_gpu: bool = False,
+    ):
         self.model_id = model_id
         self._model: Optional[SentenceTransformer] = None
-        self._device = device
+        self.require_gpu = require_gpu
+        if device is not None:
+            self._device = device
+        else:
+            try:
+                import torch
+                self._device = "cuda" if torch.cuda.is_available() else "cpu"
+            except Exception:
+                self._device = "cpu"
 
     def load(self) -> SentenceTransformer:
         """Load the SentenceTransformer model. Returns cached model if already loaded."""
         if self._model is None:
             from sentence_transformers import SentenceTransformer
+            if self.require_gpu and self._device != "cuda":
+                raise RuntimeError(
+                    "GPU execution required for embeddings, but CUDA is unavailable in this environment."
+                )
 
             try:
                 self._model = SentenceTransformer(
