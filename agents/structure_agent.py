@@ -20,7 +20,7 @@ class StructureAgent:
     Model: Qwen/Qwen2-7B-Instruct (open-source)
     """
 
-    STRUCTURE_MODEL_ID = "Qwen/Qwen2-7B-Instruct"
+    STRUCTURE_MODEL_ID = "Qwen/Qwen2-1.5B-Instruct"
 
     OUTPUT_SCHEMA = {
         "case_name": "",

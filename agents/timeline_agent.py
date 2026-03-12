@@ -20,7 +20,7 @@ class TimelineAgent:
     Model: Qwen/Qwen2-7B-Instruct (open-source)
     """
 
-    TIMELINE_MODEL_ID = "Qwen/Qwen2-7B-Instruct"
+    TIMELINE_MODEL_ID = "Qwen/Qwen2-1.5B-Instruct"
 
     def __init__(self, llm_loader: Optional[LLMLoader] = None):
         self._llm = llm_loader

@@ -20,7 +20,7 @@ class ResearchAgent:
     Model: meta-llama/Llama-3.1-8B-Instruct (requires HuggingFace access)
     """
 
-    RESEARCH_MODEL_ID = "meta-llama/Llama-3.1-8B-Instruct"
+    RESEARCH_MODEL_ID = "Qwen/Qwen2-1.5B-Instruct"
 
     def __init__(
         self,

@@ -33,7 +33,7 @@ def _prompt_to_str(payload: Any) -> str:
 def get_structure_chain(llm_loader: Optional[LLMLoader] = None):
     """LangChain chain: document text -> structured metadata (JSON)."""
     if llm_loader is None:
-        llm_loader = LLMLoader("Qwen/Qwen2-7B-Instruct", max_new_tokens=1024, temperature=0.2)
+        llm_loader = LLMLoader("Qwen/Qwen2-1.5B-Instruct", max_new_tokens=1024, temperature=0.2)
     prompt = PromptTemplate.from_template(
         "Extract legal case metadata from the following judgment text. "
         "Respond with a single JSON object only, no other text. Use this exact structure:\n"
@@ -54,7 +54,7 @@ def get_structure_chain(llm_loader: Optional[LLMLoader] = None):
 
 def _simple_json_chain(prompt_text: str, llm_loader: Optional[LLMLoader] = None, max_tokens: int = 384):
     if llm_loader is None:
-        llm_loader = LLMLoader("Qwen/Qwen2-7B-Instruct", max_new_tokens=max_tokens, temperature=0.2)
+        llm_loader = LLMLoader("Qwen/Qwen2-1.5B-Instruct", max_new_tokens=max_tokens, temperature=0.2)
     prompt = PromptTemplate.from_template(prompt_text)
 
     def _generate(x: Any) -> str:
@@ -106,7 +106,7 @@ def get_reasoning_chain(llm_loader: Optional[LLMLoader] = None):
 def get_timeline_chain(llm_loader: Optional[LLMLoader] = None):
     """LangChain chain: document text -> timeline list (JSON array)."""
     if llm_loader is None:
-        llm_loader = LLMLoader("Qwen/Qwen2-7B-Instruct", max_new_tokens=1024, temperature=0.2)
+        llm_loader = LLMLoader("Qwen/Qwen2-1.5B-Instruct", max_new_tokens=1024, temperature=0.2)
     prompt = PromptTemplate.from_template(
         "From the following legal judgment text, extract a chronological timeline of events. "
         "Respond with a JSON array only. Each element must have 'date' and 'event' keys. "
@@ -208,7 +208,7 @@ class LegalRetriever:
 def get_rag_chain(vector_store: LegalVectorStore, llm_loader: Optional[LLMLoader] = None, top_k: int = 5):
     """Build a RAG chain: question -> retrieve context -> prompt -> LLM -> answer."""
     if llm_loader is None:
-        llm_loader = LLMLoader("meta-llama/Llama-3.1-8B-Instruct", max_new_tokens=512, temperature=0.3)
+        llm_loader = LLMLoader("Qwen/Qwen2-1.5B-Instruct", max_new_tokens=512, temperature=0.3)
     retriever = LegalRetriever(vector_store, k=top_k)
     prompt = PromptTemplate.from_template(
         "You are a legal assistant. Answer the following question based ONLY on the provided document excerpts. "

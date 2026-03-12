@@ -26,7 +26,7 @@ class LLMLoader:
         model_id: str,
         device_map: Optional[str] = "auto",
         load_in_8bit: bool = False,
-        load_in_4bit: bool = True,
+        load_in_4bit: bool = False,
         max_new_tokens: int = 1024,
         do_sample: bool = True,
         temperature: float = 0.3,
