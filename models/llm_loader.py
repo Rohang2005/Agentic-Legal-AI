@@ -2,7 +2,7 @@
 LLM Loader - Loads HuggingFace transformer models for text generation.
 
 Provides a unified interface to load different models (e.g. Mistral, Qwen, Llama)
-with optional 8-bit quantization for lower memory usage.
+with optional 4-bit / 8-bit quantization for lower memory usage.
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from config.hf_config import HF_TOKEN
 class LLMLoader:
     """
     Loads and caches HuggingFace causal LM models and tokenizers.
-    Supports device mapping and optional 8-bit quantization for large models.
+    Supports device mapping and optional 4-bit/8-bit quantization for large models.
     """
 
     def __init__(
@@ -26,6 +26,7 @@ class LLMLoader:
         model_id: str,
         device_map: Optional[str] = "auto",
         load_in_8bit: bool = False,
+        load_in_4bit: bool = True,
         max_new_tokens: int = 1024,
         do_sample: bool = True,
         temperature: float = 0.3,
@@ -33,6 +34,7 @@ class LLMLoader:
         self.model_id = model_id
         self.device_map = device_map
         self.load_in_8bit = load_in_8bit
+        self.load_in_4bit = load_in_4bit
         self.max_new_tokens = max_new_tokens
         self.do_sample = do_sample
         self.temperature = temperature
@@ -46,11 +48,25 @@ class LLMLoader:
             return self._pipe
 
         import torch
-        from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+        from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, pipeline
 
-        model_kwargs: dict[str, Any] = {"device_map": self.device_map, "trust_remote_code": True}
-        if self.load_in_8bit:
-            model_kwargs["load_in_8bit"] = True
+        model_kwargs: dict[str, Any] = {
+            "device_map": self.device_map,
+            "trust_remote_code": True,
+        }
+
+        if self.load_in_4bit and torch.cuda.is_available():
+            model_kwargs["quantization_config"] = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_compute_dtype=torch.float16,
+                bnb_4bit_quant_type="nf4",
+            )
+        elif self.load_in_8bit:
+            model_kwargs["quantization_config"] = BitsAndBytesConfig(
+                load_in_8bit=True,
+            )
+        else:
+            model_kwargs["dtype"] = torch.float16 if torch.cuda.is_available() else torch.float32
 
         self._tokenizer = AutoTokenizer.from_pretrained(
             self.model_id,
@@ -60,7 +76,6 @@ class LLMLoader:
         self._model = AutoModelForCausalLM.from_pretrained(
             self.model_id,
             **model_kwargs,
-            torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
             token=HF_TOKEN,
         )
 
